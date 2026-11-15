@@ -104,3 +104,21 @@ all three reported at 20:37:29
 - **netlify[bot]:** "Deploy Preview for *zesty-bienenstitch-c3a6cb* ready!", with the latest commit `2534760…`, the deploy log link, and Deploy Preview `https://deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app`.
 - **cloudflare-workers-and-pages[bot]:** "Deploying Preview to Cloudflare". Its table shows **Build: Failed ❌** for commit 2534760 with a "View logs" link to `https://dash.cloudflare.com/?to=/5ab782b7007da791a8e2bd06113aeb72/workers/services/view/vibeassist-tries/production/builds/e2687254-…`. **The Deployment URL cell is empty.**
 
+---
+
+## STEP 3 — The preview link, per host
+
+From the reads recorded in step 2 (no new calls):
+
+- **Netlify:** preview link **`https://deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app`**.
+  - Field: `target_url` of the **status** with context `netlify/zesty-bienenstitch-c3a6cb/deploy-preview`, state `success`, from `GET /commits/2534760…/statuses` (also in `/status`, `.statuses[]`). **It is on a status.**
+  - The same link (with a trailing `/`) is also in the **check run** "Pages changed - zesty-bienenstitch-c3a6cb", in `output.text`, and in netlify[bot]'s PR comment.
+  - The *pending* status's target_url is the Netlify dashboard deploy page, not the preview.
+- **Vercel:** preview link **`https://vibeassist-tries-git-tries-preview-1-xig2.vercel.app`**.
+  - The field it comes from is the **comment** by vercel[bot] (the "Preview" link in its table, and `previewUrl` in the comment's base64 `[vc]` header).
+  - It is **not** on the status: the `Vercel` status's `target_url` is the dashboard page `https://vercel.com/xig2/vibeassist-tries/6ABXP5FiS5ybaNDamiWPEXm6rz5Y`.
+  - It is **not** in any check run's details_url (`https://vercel.com/github`). The only place the hostname shows up in a check run is embedded inside a different link in the "Vercel Preview Comments" check's `output.summary`: `https://vercel.live/open-feedback/vibeassist-tries-git-tries-preview-1-xig2.vercel.app?via=pr-comment-feedback-link`. That is a vercel.live feedback link, not the preview link itself.
+  - **Vercel gives no direct preview link in any status or check run; the direct link is only in its comment.**
+- **Cloudflare:** **no preview link at all.** Its only check run ("Workers Builds: vibeassist-tries") ended in `failure`, and its details_url and output.summary link only to the dash.cloudflare.com build and script pages. It wrote no status. Its comment's "Deployment URL" cell is empty because the build failed.
+  - **Cloudflare gives no preview link in any status, check run or comment for this pull request.**
+
