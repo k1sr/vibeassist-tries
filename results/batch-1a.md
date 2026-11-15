@@ -161,3 +161,31 @@ I have no logged-in browser tool. The container has headless Chromium (Playwrigh
 
 At the start of the second run, `git push origin main` worked (`ba904e2..e7f2a94  main -> main`).
 
+## TRY 1 — Squash merge and rebase merge (second run)
+
+**a/b. What I did:**
+- `git checkout -b tries/pr-a`, two commits (`5e74fed PR A commit 1`, `6569abe PR A commit 2`), `git push -u origin tries/pr-a` → worked.
+  Note: `PR A commit 2` was made with `git commit -a`, so it also picked up my uncommitted edit to this results file (the "first run" labels). That is why PR A shows 2 files changed.
+- `git checkout -b tries/pr-b` from main, two commits (`4ddb86b PR B commit 1`, `c6fe7d7 PR B commit 2`), `git push -u origin tries/pr-b` → worked.
+- `mcp__github__create_pull_request` head `tries/pr-a` → https://github.com/k1sr/vibeassist-tries/pull/1. Head `tries/pr-b` → https://github.com/k1sr/vibeassist-tries/pull/2.
+- `mcp__github__merge_pull_request` pullNumber 1, `merge_method: "squash"` (this tool calls `PUT /repos/k1sr/vibeassist-tries/pulls/1/merge`) →
+  `{"sha":"8cbb7915653c50238d0f20cc632feca8c7b9d45a","merged":true,"message":"Pull Request successfully merged"}`
+- `mcp__github__merge_pull_request` pullNumber 2, `merge_method: "rebase"` →
+  `{"sha":"30649399a1445138c6437df4555ebe1df7770799","merged":true,"message":"Pull Request successfully merged"}`
+
+**c. Reading each pull request back** (`mcp__github__pull_request_read` method `get`, i.e. `GET /repos/k1sr/vibeassist-tries/pulls/N`):
+
+| | PR A (#1, squash) | PR B (#2, rebase) |
+|---|---|---|
+| `merged` | `true` (merged_at 10:41:45Z, merged_by k1sr) | `true` (merged_at 10:41:51Z, merged_by k1sr) |
+| `merge_commit_sha` | **not in the tool's output.** It returns number, title, body, state, merged, mergeable_state, user, merged_by, head{ref,sha}, base{ref,sha}, additions, deletions, changed_files, commits, timestamps, and no `merge_commit_sha` field. | **not in the tool's output** (same fields) |
+| head sha | `6569abe8…` | `c6fe7d7f…` |
+| SHA from the merge call | `8cbb7915…` | `30649399…` |
+| Is that SHA on main? | **Yes.** `mcp__github__list_commits` sha=main: `8cbb791 "TRY 1 pull request A (squash) (#1)"` (one squash commit, committer GitHub) | **Yes.** It is the tip of main: `3064939 "PR B commit 2"`, with `beaa0f9 "PR B commit 1"` under it. Both are new SHAs (the branch had `4ddb86b`/`c6fe7d7`), committer k1sr. |
+
+Main after both merges: `3064939` ← `beaa0f9` ← `8cbb791` ← `e7f2a94` …
+
+**d. Going the other way (`GET /repos/k1sr/vibeassist-tries/commits/SHA/pulls`):** the GitHub tools I have offer no call for this endpoint. `get_commit` returns the commit only, and `list_pull_requests` cannot filter by commit. `gh` may only be used for `search/*` here, so I could not call the endpoint. I did not try a substitute.
+
+**RESULT: fails** — both merges worked, and the SHAs the merge calls returned are on main. But reading the pull request back with my tools does **not** give `merge_commit_sha`, and I could not call the commit → pulls lookup (step d) at all. So I could not show that the pull request itself names the commit the merge made on main.
+
