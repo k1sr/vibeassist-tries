@@ -189,3 +189,31 @@ Main after both merges: `3064939` ← `beaa0f9` ← `8cbb791` ← `e7f2a94` …
 
 **RESULT: fails** — both merges worked, and the SHAs the merge calls returned are on main. But reading the pull request back with my tools does **not** give `merge_commit_sha`, and I could not call the commit → pulls lookup (step d) at all. So I could not show that the pull request itself names the commit the merge made on main.
 
+## TRY 2 — A session starts a workflow by hand (second run)
+
+**a. Workflows through one pull request**
+- On branch `tries/workflows` I added:
+  - `.github/workflows/clean-up-branches.yml`: `workflow_dispatch` with a required input `branches`, `permissions: contents: write, pull-requests: read`. For each comma-separated name it refuses `main`, refuses any branch with an open pull request (`gh api repos/$REPO/pulls?state=open&head=owner:branch`), and otherwise calls `gh api -X DELETE repos/$REPO/git/refs/heads/<name>` with `GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}`.
+  - `.github/workflows/database-deploy.yml`: `workflow_dispatch`, one step `echo "database deploy ran"`.
+- `git push -u origin tries/workflows` → worked.
+- `mcp__github__create_pull_request` → https://github.com/k1sr/vibeassist-tries/pull/3
+- `mcp__github__merge_pull_request` pullNumber 3, `merge_method: "merge"` → `{"sha":"cb76345f7f18ad3a7a144dcc208627febdece588","merged":true,"message":"Pull Request successfully merged"}`
+
+**b. Throwaway branch:** `git push origin main:refs/heads/tries/throwaway-1` → ` * [new branch]      main -> tries/throwaway-1`. `git ls-remote` showed `cb76345… refs/heads/tries/throwaway-1`.
+
+**c. Clean-up workflow started by hand**
+- `mcp__github__actions_run_trigger` method `run_workflow`, workflow_id `clean-up-branches.yml`, ref `main`, inputs `{"branches":"tries/throwaway-1"}` (this tool calls `POST /repos/k1sr/vibeassist-tries/actions/workflows/clean-up-branches.yml/dispatches`). Response:
+  `{"inputs":{"branches":"tries/throwaway-1"},"message":"Workflow run has been queued","ref":"main","status":"204 No Content","status_code":204,"workflow_id":"clean-up-branches.yml","workflow_type":"workflow_file"}`
+- Run: id `43705422010`, run_number 1, event `workflow_dispatch`, actor/triggering_actor `k1sr`, created 10:43:04Z → `status: completed`, `conclusion: success` (https://github.com/k1sr/vibeassist-tries/actions/runs/43705422010). The job `delete` succeeded. The job log ends with: `DELETED: tries/throwaway-1`.
+- Branch check: polling `git ls-remote origin refs/heads/tries/throwaway-1` → `branch gone at 10:43:18`. The remote branches afterwards are `main`, `tries/pr-a`, `tries/pr-b`, `tries/workflows`. **tries/throwaway-1 is gone.**
+
+**d. database-deploy.yml started by hand, then run again**
+- `mcp__github__actions_run_trigger` `run_workflow`, workflow_id `database-deploy.yml`, ref `main` →
+  `{"inputs":null,"message":"Workflow run has been queued","ref":"main","status":"204 No Content","status_code":204,"workflow_id":"database-deploy.yml","workflow_type":"workflow_file"}`
+- Run id `43705445701`, run_attempt 1, created 10:43:22Z → `completed` / `success` at 10:43:29Z.
+- `mcp__github__actions_run_trigger` method `rerun_workflow_run`, run_id `43705445701` (this tool calls `POST /repos/k1sr/vibeassist-tries/actions/runs/43705445701/rerun`) →
+  `{"message":"Workflow run has been queued for re-run","run_id":43705445701,"status":"201 Created","status_code":201}`
+- `mcp__github__actions_get` `get_workflow_run` 43705445701 right after → `"run_attempt":2,"status":"in_progress","run_started_at":"2026-11-15T10:43:39Z"`. **Attempt 2 started.**
+
+**RESULT: passes** — both workflows started from my dispatch requests (event `workflow_dispatch`, both runs succeeded), the clean-up run deleted `tries/throwaway-1`, and the rerun request started attempt 2 of the deploy run.
+
