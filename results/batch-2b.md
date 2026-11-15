@@ -358,7 +358,7 @@ One command that does this (run here):
 $ gh api repos/k1sr/vibeassist-tries/issues/comments/6900975077 --jq .body | head -1 | sed -E 's/^\[vc\]: #[^:]+://' | base64 -d | jq -r '.projects[] | "https://" + .previewUrl'
 https://vibeassist-tries-git-tries-preview-1-xig2.vercel.app
 ```
-(I ran it as the equivalent `jq -r .body` on the saved JSON, with the same pipeline.)
+(Run exactly as shown at about 21:45 UTC; output as shown.)
 
 Why not the human-readable table: the "Preview" cell (`[Preview](https://…)`) is empty when a deploy fails, and its column layout is presentation that Vercel can change. The base64 header is the machine-readable form.
 
