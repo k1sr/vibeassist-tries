@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "mkdir -p dist && cp index.html dist/"
+    "build": "echo intentional build failure for batch 2 && exit 1"
   }
 }
