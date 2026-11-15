@@ -217,3 +217,53 @@ Main after both merges: `3064939` ← `beaa0f9` ← `8cbb791` ← `e7f2a94` …
 
 **RESULT: passes** — both workflows started from my dispatch requests (event `workflow_dispatch`, both runs succeeded), the clean-up run deleted `tries/throwaway-1`, and the rerun request started attempt 2 of the deploy run.
 
+## TRY 7 — Prompt compare (second run)
+
+**a.** Added `tries/expected-prompt.txt` on main with exactly the given text (351 bytes, **no trailing newline**). `git push origin main` → `4baf7e0..6872f16  main -> main`.
+
+**b.** `mcp__claude-code-remote__create_trigger` at 10:44:18Z: `name: "TRY 7 prompt compare"`, `run_once_at: "2026-11-15T10:47:00Z"`, `create_new_session_on_fire: true`, prompt = the file's text + ` Also say hello.` The response:
+- `outcome: CREATE_TRIGGER_OUTCOME_CREATED`, `id: trig_01SNv7CteeU9MADT75kj5cez`, `enabled: true`
+- `session_request.config.sources: []`, `outcomes: []`, `mcp_servers: []`: **no repository attached**
+- `session_request.events[0].message.content` = the prompt exactly, nothing added
+- the same "stores no MCP connectors" warning as in the first run
+
+**c. Waiting and fetching**
+- `get_trigger` → `enabled: false`, `ended_reason: run_once_fired`, `last_fired_at: 10:47:54Z` (54 s late), `last_run.status: ROUTINE_RUN_STATUS_SUCCEEDED`, `finished_at 10:48:27Z`, session `cse_01YRXdXTM4EXFQ2yHiYCTKcu`.
+- At 10:59:11 `git ls-remote origin 'refs/heads/tries/*'` → only `tries/pr-a`, `tries/pr-b`, `tries/workflows`. **Branch `tries/evidence-7` does not exist on GitHub, so there is no file to copy from the branch.**
+
+**Extra: what the session's transcript shows** (`mcp__claude-code-remote__list_events`):
+- It cloned the repo (read worked) and read the file (`351 tries/expected-prompt.txt`).
+- It wrote `tries/evidence/try-7.md` locally on `tries/evidence-7`. `git push -u origin tries/evidence-7` →
+  ```
+  remote: access denied by the git proxy: k1sr/vibeassist-tries is not in this session's authorized repository set, so the proxy will not inject a credential for it. To fix, add the repository to the session's sources.
+  fatal: unable to access 'https://github.com/k1sr/vibeassist-tries.git/': The requested URL returned error: 403
+  ```
+  It retried once and got the same error, then sent a push notification and replied "Hello!" plus its findings.
+- The file it wrote (not pushed; text copied from the transcript):
+  ```
+  # Try 7 evidence
+
+  ## First message received (user's text, copied exactly)
+
+  This is a test. Read tries/expected-prompt.txt in the repository k1sr/vibeassist-tries. Compare it, word for word, with the first message you were given in this session. Write tries/evidence/try-7.md on a branch named tries/evidence-7 with: the first message you were given, copied exactly; whether the two are the same; and every difference. Push it. Also say hello.
+
+  Note: the harness attached automatic context blocks (account context and git
+  attribution instructions) alongside this message. They are not part of the
+  user's text and are omitted here because they contain private account details.
+
+  ## Same?
+  No. The texts are identical up to and including "Push it." but differ at the end.
+
+  ## Differences
+  1. The received message has an extra trailing sentence not in `expected-prompt.txt`:
+     ` Also say hello.` (a space followed by "Also say hello.")
+  2. `expected-prompt.txt` ends with a newline after "Push it."; the received
+     message has no trailing newline (whitespace-only difference).
+
+  No other word-level differences.
+  ```
+- **Was the first message exactly the task's prompt?** The session's own file reports only the added sentence, and says other automatic context blocks (account context, git attribution) came "alongside" the message. The stored first user event in the transcript shows the prompt followed directly by an appended block: `\n<system-reminder>This task fired at Sun 2026-11-15 10:47:53 UTC. Treat this as the current date and time — the conversation may have been idle since the last message. Fired by routine "TRY 7 prompt compare" (trigger_id: trig_01SNv7CteeU9MADT75kj5cez).</system-reminder>`. So something **was added after** the prompt, and the session did not list it as a difference.
+- Its difference no. 2 is **wrong**: `tries/expected-prompt.txt` has no trailing newline (`wc -c` = 351, last bytes `P u s h   i t .`).
+
+**RESULT: fails** — `tries/evidence-7` was never pushed. The scheduled session was refused by the git proxy because the task was saved with `sources: []`. In the transcript it did name "Also say hello." as the difference, but it also claimed a trailing-newline difference that does not exist, and it did not report the system-reminder appended after the prompt.
+
