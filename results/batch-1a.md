@@ -1,0 +1,116 @@
+# Batch 1a results
+
+- **Date and time (start):** 2026-11-15 09:19 UTC
+- **Model:** session reports `session_context.model` = `claude-opus-5-5` and `last_served_model` = `claude-opus-5-5` (from the `get_session` tool).
+- **Tools I was given that deal with scheduled tasks:** `mcp__claude-code-remote__create_trigger`, `list_triggers`, `get_trigger`, `update_trigger`, `delete_trigger`, `fire_trigger`, `send_later` (all on the claude-code-remote server). Also the built-in `CronCreate`, `CronList`, `CronDelete` (session-only, in memory), and `ScheduleWakeup` (only for /loop).
+- **Tools I was given that deal with GitHub:** the `github` MCP connector (`mcp__github__*`: `get_me`, `push_files`, `create_or_update_file`, `create_branch`, `create_pull_request`, `merge_pull_request`, `pull_request_read`, `list_commits`, `get_commit`, `list_branches`, `get_file_contents`, `actions_list`, `actions_get`, `actions_run_trigger`, `get_job_logs` and others); `git` in the shell (proxied); `mcp__claude-code-remote__add_repo`, `list_repos`, `subscribe_pr_activity` / `unsubscribe_pr_activity`. No `gh` CLI except for `gh api ... search/*`.
+- **Tools I was given that deal with artifacts:** `Artifact` (publish / read / list / delete / open / pin / unpin / quickstart), `ArtifactComments`, `ArtifactData`, `DesignSync`, and the `Claude_Docs` connector (`mcp__Claude_Docs__*`).
+- **Results file location:** I could **not** push this file. Every GitHub write was refused (see SETUP). It exists only in the session's working copy at `results/batch-1a.md` (local commit on `main`, not pushed).
+
+---
+
+## SETUP
+
+**What I did:** On local `main` I created `index.html` (a heading and a paragraph), `package.json` with `"build": "mkdir -p dist && cp index.html dist/"`, and a `.gitignore` for `dist/`. `npm run build` worked locally (`dist/index.html` was created). Then I tried to push.
+
+**Exact commands / tool calls and results:**
+
+1. `git commit` locally → commit `b174b17 Add tiny static site and build script` (local only).
+2. `git push origin main` →
+   ```
+   remote: Claude doesn't have GitHub access to k1sr/vibeassist-tries for your organization. An org admin can install the Claude GitHub App at https://github.com/apps/claude/installations/select_target, or reconnect GitHub from claude.ai settings (https://claude.ai/customize/connectors?auth_start=github&auth_start_force=1) to re-link an existing installation
+   fatal: unable to access 'https://github.com/k1sr/vibeassist-tries/': The requested URL returned error: 403
+   ```
+3. `git push --dry-run origin main:claude/bold-heisenberg-muchwx` (the session's own branch) → the same message and `error: 403`. `git ls-remote origin` worked (read access is fine).
+4. `mcp__github__get_me` → works, login `k1sr`.
+5. `mcp__github__push_files` (owner k1sr, repo vibeassist-tries, branch main, 3 files) →
+   `failed to create tree: POST https://api.github.com/repos/k1sr/vibeassist-tries/git/trees: 403 Resource not accessible by integration []`
+6. `mcp__github__create_or_update_file` (index.html on main) →
+   `failed to create/update file: PUT https://api.github.com/repos/k1sr/vibeassist-tries/contents/index.html: 403 Resource not accessible by integration []`
+7. `mcp__github__create_branch` (`tries/pr-a` from main) →
+   `failed to create branch: POST https://api.github.com/repos/k1sr/vibeassist-tries/git/refs: 403 Resource not accessible by integration []`
+
+**RESULT: fails** — this session can read the repository but every write (git push, contents API, git trees API, git refs API) is refused with 403. The Claude GitHub App does not have write access to k1sr/vibeassist-tries for this account/organization.
+
+---
+
+## TRY 1 — Squash merge and rebase merge, matched to their pull requests
+
+**What I did:** Nothing beyond the refused calls above. Step a needs a branch with two commits; creating a branch (`mcp__github__create_branch` → `403 Resource not accessible by integration`) and pushing (`git push` → `403`) are both refused, so there is nothing to open a pull request from or merge.
+
+**RESULT: could not be tried** — no write access to the repository (branch creation and push refused with 403, exact errors in SETUP).
+
+---
+
+## TRY 2 — A session starts a workflow by hand
+
+**What I did:** Nothing beyond the refused calls above. Step a needs a pull request that adds the two workflow files and is then merged; step b needs a new branch. Both need write access, which is refused (see SETUP). I did not call the dispatch or rerun endpoints, because without the workflow files on `main` there is nothing to dispatch.
+
+**RESULT: could not be tried** — no write access to the repository (403 on every write, exact errors in SETUP).
+
+---
+## TRY 3 — A scheduled session sets a wake-up message into itself
+
+(See the section after TRY 8. I wrote it last because I had to wait for the scheduled task.)
+
+---
+
+## TRY 7 — A scheduled session compares its own prompt with the one it was meant to have
+
+**What I did:** Step a: tried to add `tries/expected-prompt.txt` to `main` with the exact text given.
+
+**Exact call:** `mcp__github__create_or_update_file` (owner k1sr, repo vibeassist-tries, branch main, path `tries/expected-prompt.txt`, the given text as content).
+
+**Exact result:**
+```
+failed to create/update file: PUT https://api.github.com/repos/k1sr/vibeassist-tries/contents/tries/expected-prompt.txt: 403 Resource not accessible by integration []
+```
+(`git push` is refused too, see SETUP.) Step a failed, so I stopped this try as instructed. I did **not** create the "TRY 7 prompt compare" scheduled task: without the file on `main` the scheduled session would have had nothing to compare against, and it could not have pushed `tries/evidence-7` either.
+
+**RESULT: could not be tried** — step a (adding the file to main) was refused with 403.
+
+---
+
+## TRY 8 — Can a session get the direct link to one artboard of a design canvas?
+
+**a. Artifact types and the canvas**
+
+- `Artifact` `action: "list"`, `scope: "types"` → 7 types: Data, **Design** (`https://claude.ai/artifact/QKN21svewxgyPb6SYRqWnd`), Design System, Docs, Sheets, Slides, Whiteboard.
+- `Artifact` publish with `type_url` = the Design type, `title: "TRY 8 canvas"`, `auto_open: "after_first_write"` → created **https://claude.ai/artifact/SQ9JtfHo4QBWj5iyQAR2pf** (artifact id `cdafb187-ec1f-4730-adcb-4a6efac59b20`).
+- Published `project/canvas.json` + `project/Main.dc.html` (artboard titled "Card A"), then `project/CardB.dc.html` (artboard titled "Card B"). Both publishes succeeded (versions 2 and 3). The index:
+  ```json
+  {"v":3,"createdOnFiles":{"v":1,"at":"2026-11-15T09:22:00Z"},"title":"TRY 8 canvas","launch":{"view":"canvas"},"pages":[],"boards":{"Main.dc.html":{"x":0,"y":0,"w":480,"h":320,"title":"Card A"},"CardB.dc.html":{"x":560,"y":0,"w":480,"h":320,"title":"Card B"}},"order":["Main.dc.html","CardB.dc.html"],"notes":{},"designSystems":[]}
+  ```
+
+**b. What the tools return**
+
+- `Artifact` `list` `scope: "files"` → 37 files: `SKILL.md`, `index.html`, `artifact-type/*` (app.js, dc-runtime.js, references, i18n, etc.) and my 3 files under `project/`. The stored declaration includes a feature flag named `design_artboards_at_address`.
+- `Artifact` `list` `scope: "assets"` → empty.
+- `Artifact` `read` (no path) → the artifact id, version, type, instructions. **No per-artboard code or `#play-` address.**
+- `Artifact` `read` of `project/canvas.json`, `project/Main.dc.html`, `project/CardB.dc.html`, `artifact-type/reference/view-state.md`, `artifact-type/thumbnail/thumbnail.json`, `SKILL.md` → **none of these holds a per-artboard code or a `#play-` address.** Artboards are named only by file name (`Main.dc.html`, `CardB.dc.html`). No publish result or list result gave one either.
+- I also read `index.html`, `artifact-type/app.js` and `artifact-type/dc-runtime.js`, and searched them for `play-`. `artifact-type/app.js` has the code that makes the address:
+  ```js
+  var Pvn="artboard-",kot="play-",Eot="page-",H8=e=>Pvn+Zl(e),NPe=e=>kot+Zl(e),QL=e=>Eot+Zl(e);
+  function Zl(e){let t=-559038737,n=1103547991;for(let r=0;r<e.length;r++){let s=e.charCodeAt(r);t=Math.imul(t^s,2654435761),n=Math.imul(n^s,1597334677)}return t=Math.imul(t^t>>>16,2246822507)^Math.imul(n^n>>>13,3266489909),n=Math.imul(n^n>>>16,2246822507)^Math.imul(t^t>>>13,3266489909),(4294967296*(2097151&n)+(t>>>0)).toString(16).padStart(14,"0").slice(-12)}
+  ```
+  The parser (`LPe`) reads the hash, strips `play-` or `artboard-`, and finds the artboard whose `Zl(file)` equals the rest. So the code is **not stored anywhere**. It is a 12-hex-digit hash of the artboard's file name (the key in `boards`, without `project/`). The page's built-in default board record uses `file:"Main.dc.html"` (no `project/` prefix), which supports that.
+- I ran that `Zl` function in node on the file names:
+  ```
+  Main.dc.html           play-15dd8cd198dd  artboard-15dd8cd198dd
+  CardB.dc.html          play-7f59251f510b  artboard-7f59251f510b
+  project/CardB.dc.html  play-533252522dc0  (in case the prefix were included)
+  ```
+
+**c. Browser**
+
+I have no logged-in browser tool. The container has headless Chromium (Playwright), so I opened `https://claude.ai/artifact/SQ9JtfHo4QBWj5iyQAR2pf#play-7f59251f510b` in it: HTTP 200, final URL unchanged, page title "Claude Artifact", body text **"Couldn’t load artifact Try again"**. The headless browser is not signed in to claude.ai and the canvas is private, so I could not open an artboard there or see the address the editor writes.
+
+**Address for "Card B" (worked out, not confirmed in a browser):**
+`https://claude.ai/artifact/SQ9JtfHo4QBWj5iyQAR2pf#play-7f59251f510b`
+(Card A: `...#play-15dd8cd198dd`.)
+
+**What is missing:** no tool returns the code. I worked it out by reading the editor's own JavaScript (`artifact-type/app.js`) and re-running its hash, so it would break silently if the type changed its hash. I could not confirm it by loading it while signed in. (The code also says the `play` form only opens the board when the viewer `plays` and the board is not `frameless`. Otherwise `#artboard-<same code>` focuses it.)
+
+**RESULT: passes (with a caveat)** — I can state an address for Card B, `https://claude.ai/artifact/SQ9JtfHo4QBWj5iyQAR2pf#play-7f59251f510b`, from what I read. But it comes from re-running the page's hash code, not from any file or tool field, and I have not checked it in a signed-in browser.
+
+---
