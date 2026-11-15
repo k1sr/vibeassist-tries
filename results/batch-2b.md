@@ -307,3 +307,82 @@ time up at 21:41:34 (3 of 4 had reported)
 - **Cloudflare Pages:** yes. Check run `success` "Deployed successfully", with Preview URL `https://ef41128a.vibeassist-tries.pages.dev` and Branch Preview URL `https://tries-preview-1.vibeassist-tries.pages.dev` in output.summary.
 - **Cloudflare Workers Builds:** **no result at all** (nothing to recover from; it has not run on any commit since 20:40).
 
+---
+
+## STEP 4 — Vercel's comment
+
+`gh api repos/k1sr/vibeassist-tries/issues/comments/6900975077` → exit 0. Author `vercel[bot]`, updated_at `2026-11-15T21:31:13Z` (after the restored build 5f60927). Raw: `results/batch-2b-raw/step4-vercel-comment.json`.
+
+**Full text of the comment body:**
+````
+[vc]: #+otnifvRUUISc8WQHVaukXJA2OQ6ksyKGSl+rzsSOb0=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJ2aWJlYXNzaXN0LXRyaWVzIiwicHJvamVjdElkIjoicHJqXzZLbkRkR054MFI3bGEyMTVRS1JwUDRKT2VWaTUiLCJpbnNwZWN0b3JVcmwiOiJodHRwczovL3ZlcmNlbC5jb20veGlnMi92aWJlYXNzaXN0LXRyaWVzL0h1NlpKRE1YdTd6NHVkV0RhNHZFYW1wQTFNeTIiLCJwcmV2aWV3VXJsIjoidmliZWFzc2lzdC10cmllcy1naXQtdHJpZXMtcHJldmlldy0xLXhpZzIudmVyY2VsLmFwcCIsIm5leHRDb21taXRTdGF0dXMiOiJERVBMT1lFRCIsImxpdmVGZWVkYmFjayI6eyJyZXNvbHZlZCI6MCwidW5yZXNvbHZlZCI6MCwidG90YWwiOjAsImxpbmsiOiJ2aWJlYXNzaXN0LXRyaWVzLWdpdC10cmllcy1wcmV2aWV3LTEteGlnMi52ZXJjZWwuYXBwIn0sInJvb3REaXJlY3RvcnkiOm51bGx9XX0=
+The latest updates on your projects. Learn more about [Vercel for GitHub](https://vercel.link/github-learn-more).
+
+| Project | Deployment | Actions | Updated |
+| :--- | :----- | :------ | :------ |
+| <a href="https://vercel.com/xig2/vibeassist-tries"><sup><img src="https://vercel.com/api/www/avatar?projectId=prj_6KnDdGNx0R7la215QKRpP4JOeVi5&teamId=team_4tzgRO8fuEcLzU154gtP8DNT&s=32" width="16" height="16" align="middle" alt="" /></sup></a> [vibeassist-tries](https://vercel.com/xig2/vibeassist-tries) | ![Ready](https://vercel.com/static/status/ready.svg) [Ready](https://vercel.com/xig2/vibeassist-tries/Hu6ZJDMXu7z4udWDa4vEampA1My2) | [Preview](https://vibeassist-tries-git-tries-preview-1-xig2.vercel.app) | <relative-time datetime="2026-11-15T21:31:13.616Z">Nov 15, 2026 9:31pm UTC</relative-time> |
+````
+
+The first line is a markdown link-reference definition (`[vc]: #<hash>:<base64>`), so it does not render on GitHub. The part after the second `:` is base64 JSON. Decoded:
+```json
+{
+  "isMonorepo": true,
+  "type": "github",
+  "projects": [
+    {
+      "name": "vibeassist-tries",
+      "projectId": "prj_6KnDdGNx0R7la215QKRpP4JOeVi5",
+      "inspectorUrl": "https://vercel.com/xig2/vibeassist-tries/Hu6ZJDMXu7z4udWDa4vEampA1My2",
+      "previewUrl": "vibeassist-tries-git-tries-preview-1-xig2.vercel.app",
+      "nextCommitStatus": "DEPLOYED",
+      "liveFeedback": {
+        "resolved": 0,
+        "unresolved": 0,
+        "total": 0,
+        "link": "vibeassist-tries-git-tries-preview-1-xig2.vercel.app"
+      },
+      "rootDirectory": null
+    }
+  ]
+}
+```
+
+**How to pick out the preview link reliably:**
+1. Take the comment on the pull request whose `user.login` is `vercel[bot]` (Vercel edits one comment in place rather than adding new ones, so there is exactly one: id 6900975077).
+2. Take its first line, which starts with `[vc]: #`. Strip everything up to and including the colon after the hash, then base64-decode the rest into JSON.
+3. For the project you want (match `.projects[].name`, here `vibeassist-tries`), read `.previewUrl`. It has no scheme, so prefix `https://`.
+4. Check `.nextCommitStatus` first. It was `"DEPLOYED"` here. On the broken commit 2f03bbf the same header read `{"inspectorUrl":"https://vercel.com/xig2/vibeassist-tries/kGVNSNM7Aoo3Ug4jcYdANTwegzax","previewUrl":"","nextCommitStatus":"FAILED"}`, so an empty `previewUrl` means no preview.
+
+One command that does this (run here):
+```
+$ gh api repos/k1sr/vibeassist-tries/issues/comments/6900975077 --jq .body | head -1 | sed -E 's/^\[vc\]: #[^:]+://' | base64 -d | jq -r '.projects[] | "https://" + .previewUrl'
+https://vibeassist-tries-git-tries-preview-1-xig2.vercel.app
+```
+(I ran it as the equivalent `jq -r .body` on the saved JSON, with the same pipeline.)
+
+Why not the human-readable table: the "Preview" cell (`[Preview](https://…)`) is empty when a deploy fails, and its column layout is presentation that Vercel can change. The base64 header is the machine-readable form.
+
+Two caveats:
+- `previewUrl` is the **branch** alias (`…-git-tries-preview-1-…`), which always points at the branch's latest successful deploy. It is not a link fixed to one commit. The per-commit deployment is identified only by `inspectorUrl` (a vercel.com dashboard link).
+- The comment is not tied to a commit SHA. To know which commit it describes, compare `inspectorUrl` with the `target_url` of the `Vercel` status on the head commit (both `…/Hu6ZJDMXu7z4udWDa4vEampA1My2` here).
+
+---
+
+## Result per host
+
+**Netlify:** deploy result on main: **not readable** (it wrote nothing for main commit 81e8a52 in 10 min). Deploy result on a pull request: **readable** (status `netlify/zesty-bienenstitch-c3a6cb/deploy-preview`: success / failure "Deploy Preview failed."; also its 3 check runs, which turn `failure` on a failed deploy). Preview link: **readable** (`target_url` of the `success` status: `https://deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app`).
+
+**Vercel:** deploy result on main: **readable** (status `Vercel`, success, on 81e8a52). Deploy result on a pull request: **readable** (status `Vercel`: success / failure with an `npx vercel inspect … --logs` hint). Preview link: **not readable from any status or check run**. It is readable only from vercel[bot]'s PR comment (the base64 `[vc]` header's `previewUrl`: `https://vibeassist-tries-git-tries-preview-1-xig2.vercel.app`).
+
+**Cloudflare Pages:** deploy result on main: **readable** (check run "Cloudflare Pages", success, on 81e8a52). Deploy result on a pull request: **readable** (check run "Cloudflare Pages": success / failure "🚫 Build failed."). Preview link: **readable** (check run `output.summary`, HTML rows "Preview URL" `https://<deploy-id>.vibeassist-tries.pages.dev` and "Branch Preview URL" `https://tries-preview-1.vibeassist-tries.pages.dev`; not in a status or in details_url).
+
+**Cloudflare Workers Builds:** deploy result on main: **not readable** (nothing written for 81e8a52). Deploy result on a pull request: **not readable** in this pass (no check run on ca969ad, 2f03bbf or 5f60927; in batch 2 it did write `failure` check runs "Workers Builds: vibeassist-tries"). Preview link: **not readable** (it never produced one; its comment's Deployment URL cells are empty).
+
+---
+
+## Left in place
+
+- **Open pull request** https://github.com/k1sr/vibeassist-tries/pull/4 — not merged. Head `5f60927` (build script restored, heading and paragraph changed).
+- **Branches:** `tries/preview-1`, plus `tries/pr-a`, `tries/pr-b`, `tries/workflows` from batch 1.
+- **Files on main from this batch:** `results/batch-2b.md`, `results/batch-2b-raw/*`.
+- **Finished:** 2026-11-15 ~21:44 UTC.
