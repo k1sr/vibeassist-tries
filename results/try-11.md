@@ -40,3 +40,12 @@ I checked again at 23:04:41Z with a harmless `update_trigger` (`enabled: true`) 
 - **Hourly check:** `sources` = https://github.com/k1sr/vibeassist-tries, `outcomes` branch "claude/vigilant-gauss".
 - **The hourly schedule changed:** the page's save rewrote it from `0 * * * *` to `2 * * * *`, so the first run moved from 00:06:04Z to **2026-11-16T00:02:00Z**.
 - **Both tasks** now have `allowed_tools` "preset:default", Task, Bash, Glob, Grep, Read, Edit, MultiEdit, Write, NotebookEdit, WebFetch, TodoWrite, WebSearch, BashOutput, KillBash, Skill, Tmux, Monitor, SendUserFile and REPL. When the tool made them, this list was empty.
+
+### The GitHub trigger was removed from "TRY 11 bring up to date"
+
+The person: "Removed it, repo still there, please check again. Added API with no details and it went back to manual trigger".
+
+- **What they did:** removed the GitHub trigger, added an "API" trigger with no details, and the page then showed the task as a manual trigger again. The GitHub trigger's event was never recorded.
+- **Checked at 23:06:12Z** with a harmless `update_trigger` (`enabled: true`): `cron_expression` is "" and `sources` = https://github.com/k1sr/vibeassist-tries. The repository is still there. `outcomes` branch is now "claude/exciting-noether", and it changes with each save.
+- **What the tool can't show:** any field for GitHub, API or manual triggers. So the tool can't confirm the GitHub trigger is gone; that rests on what the person saw.
+- **Ready to start:** "TRY 11 bring up to date" can now be started only by the hourly check, by hand, or through the API.
