@@ -9,7 +9,9 @@
 
 ---
 
-## SETUP
+# First run (2026-11-15, 09:19–09:36 UTC, before GitHub was reconnected)
+
+## SETUP (first run)
 
 **What I did:** On local `main` I created `index.html` (a heading and a paragraph), `package.json` with `"build": "mkdir -p dist && cp index.html dist/"`, and a `.gitignore` for `dist/`. `npm run build` worked locally (`dist/index.html` was created). Then I tried to push.
 
@@ -34,7 +36,7 @@
 
 ---
 
-## TRY 1 — Squash merge and rebase merge, matched to their pull requests
+## TRY 1 — Squash merge and rebase merge, matched to their pull requests (first run)
 
 **What I did:** Nothing beyond the refused calls above. Step a needs a branch with two commits; creating a branch (`mcp__github__create_branch` → `403 Resource not accessible by integration`) and pushing (`git push` → `403`) are both refused, so there is nothing to open a pull request from or merge.
 
@@ -42,20 +44,20 @@
 
 ---
 
-## TRY 2 — A session starts a workflow by hand
+## TRY 2 — A session starts a workflow by hand (first run)
 
 **What I did:** Nothing beyond the refused calls above. Step a needs a pull request that adds the two workflow files and is then merged; step b needs a new branch. Both need write access, which is refused (see SETUP). I did not call the dispatch or rerun endpoints, because without the workflow files on `main` there is nothing to dispatch.
 
 **RESULT: could not be tried** — no write access to the repository (403 on every write, exact errors in SETUP).
 
 ---
-## TRY 3 — A scheduled session sets a wake-up message into itself
+## TRY 3 — A scheduled session sets a wake-up message into itself (first run)
 
 (See the section after TRY 8. I wrote it last because I had to wait for the scheduled task.)
 
 ---
 
-## TRY 7 — A scheduled session compares its own prompt with the one it was meant to have
+## TRY 7 — A scheduled session compares its own prompt with the one it was meant to have (first run)
 
 **What I did:** Step a: tried to add `tries/expected-prompt.txt` to `main` with the exact text given.
 
@@ -71,7 +73,7 @@ failed to create/update file: PUT https://api.github.com/repos/k1sr/vibeassist-t
 
 ---
 
-## TRY 8 — Can a session get the direct link to one artboard of a design canvas?
+## TRY 8 — Can a session get the direct link to one artboard of a design canvas? (first run)
 
 **a. Artifact types and the canvas**
 
@@ -114,7 +116,7 @@ I have no logged-in browser tool. The container has headless Chromium (Playwrigh
 **RESULT: passes (with a caveat)** — I can state an address for Card B, `https://claude.ai/artifact/SQ9JtfHo4QBWj5iyQAR2pf#play-7f59251f510b`, from what I read. But it comes from re-running the page's hash code, not from any file or tool field, and I have not checked it in a signed-in browser.
 
 ---
-## TRY 3 — A scheduled session sets a wake-up message into itself
+## TRY 3 — A scheduled session sets a wake-up message into itself (first run)
 
 **a. Scheduling tools I have:** `mcp__claude-code-remote__create_trigger` (and list/get/update/delete/fire_trigger, `send_later`), plus the session-only `CronCreate`. I used `create_trigger` because a "fresh session" scheduled task is the only kind that starts a separate session.
 
@@ -143,7 +145,7 @@ I have no logged-in browser tool. The container has headless Chromium (Playwrigh
 
 ---
 
-## WHEN DONE — what is left in place
+## WHEN DONE — what is left in place (first run)
 
 - **Scheduled tasks I made:**
   - `TRY 3 wake-up` (`trig_01DSJL65nM5mNRvZ23dqPWXS`): **off** (`enabled: false`, `ended_reason: run_once_fired` — it switched itself off after its one run; I did not delete it).
@@ -152,3 +154,10 @@ I have no logged-in browser tool. The container has headless Chromium (Playwrigh
 - **Canvas:** "TRY 8 canvas" — https://claude.ai/artifact/SQ9JtfHo4QBWj5iyQAR2pf (private).
 - **Branches left:** none created on GitHub (every write refused). Locally, in this session's container only: commits on `main` (site + this file), not pushed. The fired TRY 3 session has a local, unpushed `tries/evidence-3` in its own container.
 - **Finished:** 2026-11-15 ~09:36 UTC.
+
+---
+
+# Second run (2026-11-15, after GitHub was reconnected)
+
+At the start of the second run, `git push origin main` worked (`ba904e2..e7f2a94  main -> main`).
+
