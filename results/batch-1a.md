@@ -114,3 +114,41 @@ I have no logged-in browser tool. The container has headless Chromium (Playwrigh
 **RESULT: passes (with a caveat)** — I can state an address for Card B, `https://claude.ai/artifact/SQ9JtfHo4QBWj5iyQAR2pf#play-7f59251f510b`, from what I read. But it comes from re-running the page's hash code, not from any file or tool field, and I have not checked it in a signed-in browser.
 
 ---
+## TRY 3 — A scheduled session sets a wake-up message into itself
+
+**a. Scheduling tools I have:** `mcp__claude-code-remote__create_trigger` (and list/get/update/delete/fire_trigger, `send_later`), plus the session-only `CronCreate`. I used `create_trigger` because a "fresh session" scheduled task is the only kind that starts a separate session.
+
+**Exact call (09:20:32 UTC):** `mcp__claude-code-remote__create_trigger` with `name: "TRY 3 wake-up"`, `run_once_at: "2026-11-15T09:24:00Z"`, `create_new_session_on_fire: true`, `initiation: "human_request"`, `prompt:` the TRY 3 text exactly as given.
+
+**b. Everything the create call returned (key fields):**
+- `outcome: CREATE_TRIGGER_OUTCOME_CREATED`, `id: trig_01DSJL65nM5mNRvZ23dqPWXS`, `enabled: true`, `run_once_at`/`next_run_at: 2026-11-15T09:24:00Z`, `persist_session: false`, `created_via: meta_mcp`, `created_kind: ROUTINE_CREATED_KIND_ROUTINE`, `creator.display_name: "Simon"`
+- `session_request.environment_id: env_01MdLjqWBTbYbmS9V94itoPM`. `config.sources: []` and `outcomes: []`: **no repository was attached to the session it would start**. `mcp_servers: []`, `mcp_connections: []`.
+- `session_request.events[0]`: one synthetic `user` message whose content is exactly the prompt (nothing added).
+- A warning at the end: `warning: this trigger stores no MCP connectors, so the sessions it fires will run without connector (mcp__<server>__*) tools. Connectors on triggers created via this tool are limited to those the calling session itself holds; this call had none to pass through (no session context, or no passable connector grants). If the routine needs connectors, create it from a session that holds them, or ask the user to create it from the claude.ai routines UI.`
+
+**What happened:**
+- I waited until 09:34:05 UTC (a background `until` loop; foreground `sleep` is blocked here).
+- `mcp__claude-code-remote__get_trigger` → `enabled: false`, `ended_reason: run_once_fired`, `last_fired_at: 2026-11-15T09:27:42Z` (3 min 42 s late). `last_run`: `status: ROUTINE_RUN_STATUS_SUCCEEDED`, `fired_at 09:27:42`, `finished_at 09:28:24`, `session_id: cse_01YRXdXS8nXMbKj76VHAd3Bz`.
+- `mcp__github__get_file_contents` path `tries/evidence/try-3.md`, ref `refs/heads/tries/evidence-3` →
+  `failed to resolve git reference: failed to get final reference for "refs/heads/tries/evidence-3": GET https://api.github.com/repos/k1sr/vibeassist-tries/git/ref/heads/tries/evidence-3: 404 Not Found []`
+  The branch does not exist on GitHub, so **there is no file content to copy**.
+
+**Extra (not one of the steps):** to find out why, I read the scheduled session's transcript with `mcp__claude-code-remote__list_events` (kinds assistant/result). It shows:
+- Step 1: it named `CronCreate` (and `ScheduleWakeup`, /loop only). It said **"No tool named `send_later` exists."** in that session.
+- Step 2: it called `CronCreate` with `cron "30 9 15 11 *"`, `prompt "WAKE-UP 1"`, `recurring false`. Result: `Scheduled one-shot task 1fa11ddb (30 9 15 11 *). Next run: Nov 15 9:30am. Session-only (not written to disk, dies when Claude exits). It will fire once then auto-delete.`
+- Step 3: it cloned the repo read-only, wrote and committed `tries/evidence/try-3.md` on `tries/evidence-3` locally. `git push -u origin tries/evidence-3` was refused with 403 (its words: the repo "isn't in this session's list of allowed repositories"). It retried once, got the same 403, sent a push notification and ended its turn at 09:28:24.
+- After that the transcript has **no further turn**. The 09:30 "WAKE-UP 1" did not start a new turn before 09:34 (the last event is the 09:28:24 `result`).
+
+**RESULT: fails** — `tries/evidence-3` was never pushed (the scheduled session got a 403, and the trigger had no repository in `sources`), so there is no file and no 'woke in the same session' line. The transcript also shows no 'WAKE-UP 1' turn: `send_later` was missing in the fired session, and its `CronCreate` wake-up did not deliver by 09:34.
+
+---
+
+## WHEN DONE — what is left in place
+
+- **Scheduled tasks I made:**
+  - `TRY 3 wake-up` (`trig_01DSJL65nM5mNRvZ23dqPWXS`): **off** (`enabled: false`, `ended_reason: run_once_fired` — it switched itself off after its one run; I did not delete it).
+  - `TRY 7 prompt compare`: **not created** (TRY 7 stopped at step a).
+  - (The fired TRY 3 session made its own session-only `CronCreate` job `1fa11ddb`. It lives only in that session's memory, and I cannot reach it from here.)
+- **Canvas:** "TRY 8 canvas" — https://claude.ai/artifact/SQ9JtfHo4QBWj5iyQAR2pf (private).
+- **Branches left:** none created on GitHub (every write refused). Locally, in this session's container only: commits on `main` (site + this file), not pushed. The fired TRY 3 session has a local, unpushed `tries/evidence-3` in its own container.
+- **Finished:** 2026-11-15 ~09:36 UTC.
