@@ -318,3 +318,29 @@ Main after both merges: `3064939` ← `beaa0f9` ← `8cbb791` ← `e7f2a94` …
 - **Branches left on GitHub:** `tries/pr-a`, `tries/pr-b` (merged PRs #1, #2), `tries/workflows` (merged PR #3). `tries/throwaway-1` was deleted by the clean-up workflow. `tries/evidence-3` and `tries/evidence-7` were never pushed (they exist only in the fired sessions' containers).
 - **Files added to main:** `index.html`, `package.json`, `.gitignore`, `a.txt` (PR A), `b.txt` (PR B), `.github/workflows/clean-up-branches.yml`, `.github/workflows/database-deploy.yml`, `tries/expected-prompt.txt`, this file.
 - **Finished:** 2026-11-15 ~11:01 UTC.
+
+---
+
+## TRY 1, follow-up
+
+At your request I ran these with `gh api` in the shell. In the second run I had not tried `gh` for these endpoints, because my instructions said `gh` was only for `search/*`. In fact all four calls work. The exact commands and output:
+
+```
+$ gh api repos/k1sr/vibeassist-tries/pulls/1 --jq '{merged, merge_commit_sha}'
+{"merge_commit_sha":"8cbb7915653c50238d0f20cc632feca8c7b9d45a","merged":true}
+[exit 0]
+$ gh api repos/k1sr/vibeassist-tries/pulls/2 --jq '{merged, merge_commit_sha}'
+{"merge_commit_sha":"30649399a1445138c6437df4555ebe1df7770799","merged":true}
+[exit 0]
+$ gh api repos/k1sr/vibeassist-tries/commits/8cbb7915653c50238d0f20cc632feca8c7b9d45a/pulls --jq '.[].number'
+1
+[exit 0]
+$ gh api repos/k1sr/vibeassist-tries/commits/30649399a1445138c6437df4555ebe1df7770799/pulls --jq '.[].number'
+2
+[exit 0]
+```
+
+- PR #1 (squash): `merge_commit_sha` = `8cbb7915…` = the SHA the merge call returned = the squash commit on main. Going the other way, that commit names PR **1**.
+- PR #2 (rebase): `merge_commit_sha` = `30649399…` = the SHA the merge call returned = the tip of main (the last of the two rebased commits; `beaa0f9` is the first). Going the other way, that commit names PR **2**.
+
+**RESULT (TRY 1 with follow-up): passes** — for both pull requests, `GET /pulls/N` gives `merge_commit_sha` equal to the commit the merge made on main, and `GET /commits/SHA/pulls` names the right pull request. The second-run "fails" came from the GitHub MCP tool's output leaving out `merge_commit_sha`. It was not a GitHub limit.
