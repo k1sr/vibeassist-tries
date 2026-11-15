@@ -30,4 +30,13 @@
 
 ## Repository already on the tasks? (the person's answer)
 
-(waiting for the person)
+The person's answer: "Neither task had the repo; I've added it to both. However, the bring up to date had saved greyed out, so I added the github trigger, which is now on there, but might need to remove it".
+
+- **TRY 11 bring up to date:** the repository was NOT already shown. The person added it. The Save button stayed greyed out after adding just the repository, so they also added a GitHub trigger, which made Save work. That GitHub trigger is now on the task. Which event it is set to hasn't been recorded yet.
+- **TRY 11 hourly check:** the repository was NOT already shown. The person added it.
+
+I checked again at 23:04:41Z with a harmless `update_trigger` (`enabled: true`) on each task, because its reply shows the hidden `session_request`:
+- **Bring up to date:** `sources` = https://github.com/k1sr/vibeassist-tries, `outcomes` branch "claude/kind-cori". The reply has no field for the GitHub trigger, so the tool can't see it.
+- **Hourly check:** `sources` = https://github.com/k1sr/vibeassist-tries, `outcomes` branch "claude/vigilant-gauss".
+- **The hourly schedule changed:** the page's save rewrote it from `0 * * * *` to `2 * * * *`, so the first run moved from 00:06:04Z to **2026-11-16T00:02:00Z**.
+- **Both tasks** now have `allowed_tools` "preset:default", Task, Bash, Glob, Grep, Read, Edit, MultiEdit, Write, NotebookEdit, WebFetch, TodoWrite, WebSearch, BashOutput, KillBash, Skill, Tmux, Monitor, SendUserFile and REPL. When the tool made them, this list was empty.
