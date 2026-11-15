@@ -1,0 +1,51 @@
+name: Clean up branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      branches:
+        description: "Branch names to delete, separated by commas"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete each named branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCHES: ${{ inputs.branches }}
+        run: |
+          set -u
+          failed=0
+          IFS=',' read -ra names <<< "$BRANCHES"
+          for raw in "${names[@]}"; do
+            b="$(echo "$raw" | xargs)"
+            [ -z "$b" ] && continue
+            if [ "$b" = "main" ]; then
+              echo "REFUSED: will not delete main"
+              failed=1
+              continue
+            fi
+            owner="${REPO%%/*}"
+            open=$(gh api "repos/$REPO/pulls?state=open&head=$owner:$b" --jq 'length')
+            if [ "$open" != "0" ]; then
+              echo "REFUSED: $b has an open pull request"
+              failed=1
+              continue
+            fi
+            enc=$(printf '%s' "$b" | jq -sRr @uri)
+            if gh api -X DELETE "repos/$REPO/git/refs/heads/$enc"; then
+              echo "DELETED: $b"
+            else
+              echo "FAILED: could not delete $b"
+              failed=1
+            fi
+          done
+          exit $failed

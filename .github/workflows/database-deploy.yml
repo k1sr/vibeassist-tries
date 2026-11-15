@@ -1,0 +1,14 @@
+name: Database deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stand-in deploy
+        run: echo "database deploy ran"
