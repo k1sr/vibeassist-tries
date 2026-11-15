@@ -267,3 +267,54 @@ Main after both merges: `3064939` ← `beaa0f9` ← `8cbb791` ← `e7f2a94` …
 
 **RESULT: fails** — `tries/evidence-7` was never pushed. The scheduled session was refused by the git proxy because the task was saved with `sources: []`. In the transcript it did name "Also say hello." as the difference, but it also claimed a trailing-newline difference that does not exist, and it did not report the system-reminder appended after the prompt.
 
+## TRY 3 — Wake-up, second run
+
+**a. Create call** (10:44:27Z): `mcp__claude-code-remote__create_trigger` with `name: "TRY 3 wake-up, second run"`, `run_once_at: "2026-11-15T10:48:00Z"`, `create_new_session_on_fire: true`, `initiation: "human_request"`, prompt = the TRY 3 text exactly as first written.
+
+**b. What the create call returned:**
+- `outcome: CREATE_TRIGGER_OUTCOME_CREATED`, `id: trig_01UgC5F4y6G1GbJXTM8v7hUH`, `enabled: true`, `next_run_at: 2026-11-15T10:48:00Z`, `persist_session: false`, `environment_id: env_01MdLjqWBTbYbmS9V94itoPM`
+- **`session_request.config.sources: []` and `outcomes: []`: the task was again saved WITHOUT the repository attached**, even though GitHub is now connected and this session can push. `create_trigger` has no parameter for sources, so I had no way to attach it.
+- `mcp_servers: []`, `mcp_connections: []`, and the same warning: `this trigger stores no MCP connectors, so the sessions it fires will run without connector (mcp__<server>__*) tools. ...`
+- `events[0].message.content` = the prompt exactly.
+
+**What happened:**
+- `get_trigger` → `enabled: false`, `ended_reason: run_once_fired`, `last_fired_at: 10:48:36Z` (36 s late), `last_run.status: ROUTINE_RUN_STATUS_SUCCEEDED`, `finished_at: 10:49:10Z`, session `cse_01YRXdXPkXWJBQFcrefAasWA`.
+- I waited until 10:59:11 (11 minutes after it fired), then ran `git ls-remote origin 'refs/heads/tries/*'` → no `tries/evidence-3`. **There is no file on GitHub to copy.**
+
+**The session's scheduling tools** (from its transcript, via `mcp__claude-code-remote__list_events`):
+- It loaded `CronCreate`, `CronList`, `CronDelete` with ToolSearch (`total_deferred_tools: 27`) and named `CronCreate` and `ScheduleWakeup` (/loop only). Its file says: **"No tool named `send_later` exists."**
+- Step 2: `CronCreate` `cron "51 10 15 11 *"`, `prompt "WAKE-UP 1"`, `recurring false` → `Scheduled one-shot task c846d695 (51 10 15 11 *). Next run: Nov 15 10:51am. Session-only (not written to disk, dies when Claude exits). It will fire once then auto-delete.`
+- Step 3: cloned (read worked), wrote and committed the file on `tries/evidence-3`. `git push` →
+  `remote: access denied by the git proxy: k1sr/vibeassist-tries is not in this session's authorized repository set, so the proxy will not inject a credential for it. To fix, add the repository to the session's sources.` / `fatal: ... error: 403`. It retried once (same error) and ended its turn at 10:49:10.
+- The file it wrote (not pushed; text copied from the transcript):
+  ```
+  # Try 3 evidence
+
+  - Time now: 2026-11-15T10:48:43Z (UTC)
+
+  ## Step 1: tools that can schedule a message into this same session
+  - `CronCreate` (deferred tool; one-shot or recurring, session-only, fires only while the session is idle)
+  - `ScheduleWakeup` (only for `/loop` dynamic mode; not used here since /loop was not invoked)
+  - No tool named `send_later` exists.
+
+  ## Step 2: result
+  Called `CronCreate` with cron `51 10 15 11 *`, prompt `WAKE-UP 1`, recurring=false. Exact result:
+
+  Scheduled one-shot task c846d695 (51 10 15 11 *). Next run: Nov 15 10:51am. Session-only (not written to disk, dies when Claude exits). It will fire once then auto-delete.
+  ```
+- **No 'WAKE-UP 1' turn**: the transcript's last event is the 10:49:10 `result`. Nothing arrived at 10:51 or later (checked at about 11:00).
+
+**RESULT: fails** — the task was again saved with no repository (`sources: []`), so its session could not push `tries/evidence-3`. Its only self-scheduling tool was the session-only `CronCreate` (no `send_later`), and that 'WAKE-UP 1' never started a new turn. So there is no 'woke in the same session' line.
+
+---
+
+## WHEN DONE — second run
+
+- **Scheduled tasks (all switched off, none deleted):**
+  - `TRY 3 wake-up` (`trig_01DSJL65nM5mNRvZ23dqPWXS`): off, `run_once_fired`
+  - `TRY 7 prompt compare` (`trig_01SNv7CteeU9MADT75kj5cez`): off, `run_once_fired`
+  - `TRY 3 wake-up, second run` (`trig_01UgC5F4y6G1GbJXTM8v7hUH`): off, `run_once_fired`
+- **Canvas:** "TRY 8 canvas" — https://claude.ai/artifact/SQ9JtfHo4QBWj5iyQAR2pf (TRY 8 was not re-run).
+- **Branches left on GitHub:** `tries/pr-a`, `tries/pr-b` (merged PRs #1, #2), `tries/workflows` (merged PR #3). `tries/throwaway-1` was deleted by the clean-up workflow. `tries/evidence-3` and `tries/evidence-7` were never pushed (they exist only in the fired sessions' containers).
+- **Files added to main:** `index.html`, `package.json`, `.gitignore`, `a.txt` (PR A), `b.txt` (PR B), `.github/workflows/clean-up-branches.yml`, `.github/workflows/database-deploy.yml`, `tries/expected-prompt.txt`, this file.
+- **Finished:** 2026-11-15 ~11:01 UTC.
