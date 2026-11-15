@@ -199,3 +199,85 @@ all three reported at 20:40:27
 - **Netlify:** `success` "Deploy Preview ready!" (it never left success). "Pages changed" said "All files already uploaded by a previous deploy with the same commits."
 - **Cloudflare:** **no.** "Workers Builds: vibeassist-tries" is `failure` again (build `db2ec5aa-b728-4342-b740-9a62fa5ba9b4`). Its comment still shows only 2534760 / Failed. Cloudflare has failed on every commit of this pull request, including the two with a working build script.
 
+---
+
+## STEP 5 — Opening each preview link from this session
+
+Commands and output (the TLS/CA lines curl prints are trimmed; the rest is exact):
+```
+$ curl -sS -v -m 20 https://deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app
+(at 20:41:05 UTC)
+* Uses proxy env variable no_proxy == 'localhost,127.0.0.1,::1,127.0.0.0/8,0.0.0.0/8,::,169.254.0.0/16,api.anthropic.com,api-staging.anthropic.com,api-pr-preview.anthropic.com,mcp-proxy.anthropic.com,mcp-proxy-staging.anthropic.com,registry.npmjs.org,jsr.io,npm.jsr.io,pypi.org,files.pythonhosted.org,index.crates.io,proxy.golang.org,host.docker.internal,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10,.svc.cluster.local,*.svc.cluster.local'
+* Uses proxy env variable https_proxy == 'http://127.0.0.1:41683'
+* Connected to 127.0.0.1 (127.0.0.1) port 41683
+* CONNECT tunnel: HTTP/1.1 negotiated
+* allocate connect buffer
+* Establish HTTP proxy tunnel to deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app:443
+> CONNECT deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app:443 HTTP/1.1
+> Host: deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app:443
+> User-Agent: curl/8.5.0
+> Proxy-Connection: Keep-Alive
+> 
+< HTTP/1.1 403 Forbidden
+< Content-Type: text/plain; charset=utf-8
+< X-Content-Type-Options: nosniff
+< Content-Length: 113
+< Connection: close
+< 
+* CONNECT tunnel failed, response 403
+* Closing connection
+curl: (56) CONNECT tunnel failed, response 403
+[curl exit 56]
+
+$ curl -sS -v -m 20 https://vibeassist-tries-git-tries-preview-1-xig2.vercel.app
+(at 20:41:05 UTC)
+* Uses proxy env variable no_proxy == 'localhost,127.0.0.1,::1,127.0.0.0/8,0.0.0.0/8,::,169.254.0.0/16,api.anthropic.com,api-staging.anthropic.com,api-pr-preview.anthropic.com,mcp-proxy.anthropic.com,mcp-proxy-staging.anthropic.com,registry.npmjs.org,jsr.io,npm.jsr.io,pypi.org,files.pythonhosted.org,index.crates.io,proxy.golang.org,host.docker.internal,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10,.svc.cluster.local,*.svc.cluster.local'
+* Uses proxy env variable https_proxy == 'http://127.0.0.1:41683'
+* Connected to 127.0.0.1 (127.0.0.1) port 41683
+* CONNECT tunnel: HTTP/1.1 negotiated
+* allocate connect buffer
+* Establish HTTP proxy tunnel to vibeassist-tries-git-tries-preview-1-xig2.vercel.app:443
+> CONNECT vibeassist-tries-git-tries-preview-1-xig2.vercel.app:443 HTTP/1.1
+> Host: vibeassist-tries-git-tries-preview-1-xig2.vercel.app:443
+> User-Agent: curl/8.5.0
+> Proxy-Connection: Keep-Alive
+> 
+< HTTP/1.1 403 Forbidden
+< Content-Type: text/plain; charset=utf-8
+< X-Content-Type-Options: nosniff
+< Content-Length: 110
+< Connection: close
+< 
+* CONNECT tunnel failed, response 403
+* Closing connection
+curl: (56) CONNECT tunnel failed, response 403
+[curl exit 56]
+```
+(Earlier, at 20:40:02, the same two URLs plus `…netlify.app/package.json` without `-v` gave the same `curl: (56) CONNECT tunnel failed, response 403` and `http_code=000`.)
+
+- **Netlify** `https://deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app`: **refused**. This session's outbound proxy answered the CONNECT with `HTTP/1.1 403 Forbidden`; curl exit 56. The request never reached Netlify.
+- **Vercel** `https://vibeassist-tries-git-tries-preview-1-xig2.vercel.app`: **refused** the same way (`403 Forbidden` on CONNECT, curl exit 56).
+- **Cloudflare:** **not tried.** There is no preview link to open, because every Cloudflare build on this pull request failed and it never published a URL (step 3).
+
+The refusal comes from this cloud environment's network policy (the preview hosts are not on its allowed list), not from the hosts. So I could not check what the previews actually serve, including whether Netlify's "successful" preview of the broken commit is just the raw repository files.
+
+---
+
+## Result lines
+
+**TRY 9 RESULT: passes** — a session can read Netlify's deploy result for a commit. It is the commit status with context `netlify/zesty-bienenstitch-c3a6cb/deploy-preview` (`pending` "Deploy Preview processing." → `success` "Deploy Preview ready!"), readable with `gh api …/commits/SHA/statuses` or `/status`, plus 3 `neutral` check runs linking the deploy page. **Caveat:** Netlify reported `success` on commit 62cdf18, whose build script exits 1. So the readable result does not reflect `npm run build` failing. Netlify apparently is not running that build. Also, on main (step 1) Netlify wrote nothing at all.
+
+**TRY 10 RESULT, Netlify: passes** — preview link `https://deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app`, from the `target_url` of the `success` **status** `netlify/zesty-bienenstitch-c3a6cb/deploy-preview`. It is also in the "Pages changed" check run's `output.text`.
+
+**TRY 10 RESULT, Vercel: fails** — the preview link `https://vibeassist-tries-git-tries-preview-1-xig2.vercel.app` is only in vercel[bot]'s PR **comment**. The `Vercel` status's `target_url` is the vercel.com dashboard page. The only check run, "Vercel Preview Comments", has details_url `https://vercel.com/github`, and the preview hostname appears only inside a vercel.live feedback URL in its `output.summary`, not as a preview link.
+
+**TRY 10 RESULT, Cloudflare: fails** — no preview link anywhere. It writes only a check run ("Workers Builds: vibeassist-tries", app `cloudflare-workers-and-pages`), whose links go to dash.cloudflare.com build pages. All its builds on this pull request failed, including those with a working build script, and its comment's Deployment URL cell is empty. It is also set up as a **Workers** project, not Cloudflare Pages.
+
+---
+
+## Left in place
+
+- **Open pull request:** https://github.com/k1sr/vibeassist-tries/pull/4 "Batch 2: preview test (do not merge)" — not merged. Head `e587e1b` (build script restored).
+- **Branches:** `tries/preview-1` (this batch). From batch 1: `tries/pr-a`, `tries/pr-b`, `tries/workflows`.
+- **Files on main from this batch:** `results/batch-2.md`, `results/batch-2-raw/*` (raw API output; no secrets).
+- **Finished:** 2026-11-15 ~20:42 UTC.

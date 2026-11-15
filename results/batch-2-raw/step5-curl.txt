@@ -1,0 +1,48 @@
+$ curl -sS -v -m 20 https://deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app
+(at 20:41:05 UTC)
+* Uses proxy env variable no_proxy == 'localhost,127.0.0.1,::1,127.0.0.0/8,0.0.0.0/8,::,169.254.0.0/16,api.anthropic.com,api-staging.anthropic.com,api-pr-preview.anthropic.com,mcp-proxy.anthropic.com,mcp-proxy-staging.anthropic.com,registry.npmjs.org,jsr.io,npm.jsr.io,pypi.org,files.pythonhosted.org,index.crates.io,proxy.golang.org,host.docker.internal,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10,.svc.cluster.local,*.svc.cluster.local'
+* Uses proxy env variable https_proxy == 'http://127.0.0.1:41683'
+* Connected to 127.0.0.1 (127.0.0.1) port 41683
+* CONNECT tunnel: HTTP/1.1 negotiated
+* allocate connect buffer
+* Establish HTTP proxy tunnel to deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app:443
+> CONNECT deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app:443 HTTP/1.1
+> Host: deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app:443
+> User-Agent: curl/8.5.0
+> Proxy-Connection: Keep-Alive
+> 
+< HTTP/1.1 403 Forbidden
+< Content-Type: text/plain; charset=utf-8
+< X-Content-Type-Options: nosniff
+< Content-Length: 113
+< Connection: close
+< 
+* CONNECT tunnel failed, response 403
+* Closing connection
+curl: (56) CONNECT tunnel failed, response 403
+[curl exit 56]
+
+$ curl -sS -v -m 20 https://vibeassist-tries-git-tries-preview-1-xig2.vercel.app
+(at 20:41:05 UTC)
+* Uses proxy env variable no_proxy == 'localhost,127.0.0.1,::1,127.0.0.0/8,0.0.0.0/8,::,169.254.0.0/16,api.anthropic.com,api-staging.anthropic.com,api-pr-preview.anthropic.com,mcp-proxy.anthropic.com,mcp-proxy-staging.anthropic.com,registry.npmjs.org,jsr.io,npm.jsr.io,pypi.org,files.pythonhosted.org,index.crates.io,proxy.golang.org,host.docker.internal,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10,.svc.cluster.local,*.svc.cluster.local'
+* Uses proxy env variable https_proxy == 'http://127.0.0.1:41683'
+* Connected to 127.0.0.1 (127.0.0.1) port 41683
+* CONNECT tunnel: HTTP/1.1 negotiated
+* allocate connect buffer
+* Establish HTTP proxy tunnel to vibeassist-tries-git-tries-preview-1-xig2.vercel.app:443
+> CONNECT vibeassist-tries-git-tries-preview-1-xig2.vercel.app:443 HTTP/1.1
+> Host: vibeassist-tries-git-tries-preview-1-xig2.vercel.app:443
+> User-Agent: curl/8.5.0
+> Proxy-Connection: Keep-Alive
+> 
+< HTTP/1.1 403 Forbidden
+< Content-Type: text/plain; charset=utf-8
+< X-Content-Type-Options: nosniff
+< Content-Length: 110
+< Connection: close
+< 
+* CONNECT tunnel failed, response 403
+* Closing connection
+curl: (56) CONNECT tunnel failed, response 403
+[curl exit 56]
+
