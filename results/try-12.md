@@ -195,3 +195,9 @@ Left in place:
 - the branches try12/pr-01 to try12/pr-20, and the 17 claude/brave-euler-* branches the runs pushed
 - the files try12/01.txt to try12/20.txt and the 20 RUN files in results/try-12-runs/, all on main
 - the 20 merged pull requests #5 to #24
+
+## After the try
+
+- **Switched off:** at 2026-11-15T23:00:07Z, with `update_trigger` (`enabled: false`). The reply shows `"enabled":false`. The task itself was not deleted.
+- **What that reply showed:** the hidden `session_request` that the read-back leaves out. It had sources = k1sr/vibeassist-tries and outcomes branch "claude/brave-euler", put there by the hand edit. Its `allowed_tools` were "preset:default", Task, Bash, Glob, Grep, Read, Edit, MultiEdit, Write, NotebookEdit, WebFetch, TodoWrite, WebSearch, BashOutput, KillBash, Skill, Tmux, Monitor, SendUserFile and REPL.
+- **The last run, from `list_triggers`:** fired at 22:38:39.635Z, about 1 s after the #24 merge returned at 22:38:38Z, and finished at 22:39:12.538Z with status SUCCEEDED.
