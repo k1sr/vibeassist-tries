@@ -228,3 +228,82 @@ and **output.text** is `null`.
 - **Cloudflare Pages:** per-deploy `https://9c07c340.vibeassist-tries.pages.dev` and branch `https://tries-preview-1.vibeassist-tries.pages.dev`. Both come from the "Cloudflare Pages" **check run**'s `output.summary` (an HTML table: rows "Preview URL:" and "Branch Preview URL:", in `<a href='…'>`). They also appear in comment 6901398325. Its `details_url` is the dashboard, and there is no status.
 - **Cloudflare Workers Builds:** **none.** It did not run for this commit, and its earlier runs all failed with empty Deployment URL cells.
 
+---
+
+## STEP 3 — A failed deploy, then recovery
+
+### 3a. Build broken
+
+package.json `"build"` set to `"echo intentional build failure for batch 2b && exit 1"`, then committed and pushed: `ca969ad..2f03bbf  tries/preview-1 -> tries/preview-1` at 21:20:20. Head **`2f03bbf99e4e5e0e07c4bf77f80bf8a93264a1aa`**.
+
+Poll log (`results/batch-2b-raw/step3-fail-poll-log.txt`). Polls 2–19 are identical to poll 1:
+```
+poll 0 at 21:20:24 | statuses: Vercel=pending | checks: vercel/Vercel Preview Comments=completed/success, cloudflare-workers-and-pages/Cloudflare Pages=in_progress/null | deployments: 
+poll 1 at 21:20:55 | statuses: netlify/zesty-bienenstitch-c3a6cb/deploy-preview=failure, Vercel=failure, netlify/zesty-bienenstitch-c3a6cb/deploy-preview=pending, Vercel=pending | checks: cloudflare-workers-and-pages/Cloudflare Pages=completed/failure, netlify/Redirect rules - zesty-bienenstitch-c3a6cb=completed/failure, netlify/Header rules - zesty-bienenstitch-c3a6cb=completed/failure, vercel/Vercel Preview Comments=completed/success, netlify/Pages changed - zesty-bienenstitch-c3a6cb=completed/failure | deployments: 
+...
+poll 20 at 21:30:49 | statuses: netlify/zesty-bienenstitch-c3a6cb/deploy-preview=failure, Vercel=failure, netlify/zesty-bienenstitch-c3a6cb/deploy-preview=pending, Vercel=pending | checks: cloudflare-workers-and-pages/Cloudflare Pages=completed/failure, netlify/Redirect rules - zesty-bienenstitch-c3a6cb=completed/failure, netlify/Header rules - zesty-bienenstitch-c3a6cb=completed/failure, vercel/Vercel Preview Comments=completed/success, netlify/Pages changed - zesty-bienenstitch-c3a6cb=completed/failure | deployments: 
+time up at 21:30:51 (3 of 4 had reported)
+```
+**Every status:**
+```
+{"creator":"netlify[bot]","context":"netlify/zesty-bienenstitch-c3a6cb/deploy-preview","state":"failure","description":"Deploy Preview failed.","target_url":"https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa2217c6e5dd612e2ca92c","created_at":"2026-11-15T21:20:38Z"}
+{"creator":"vercel[bot]","context":"Vercel","state":"failure","description":"Deployment has failed — run this Vercel CLI command: npx vercel inspect dpl_kGVNSNM7Aoo3Ug4jcYdANTwegzax --logs","target_url":"https://vercel.com/xig2/vibeassist-tries/kGVNSNM7Aoo3Ug4jcYdANTwegzax","created_at":"2026-11-15T21:20:29Z"}
+{"creator":"netlify[bot]","context":"netlify/zesty-bienenstitch-c3a6cb/deploy-preview","state":"pending","description":"Deploy Preview processing.","target_url":"https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa2217c6e5dd612e2ca92c","created_at":"2026-11-15T21:20:29Z"}
+{"creator":"vercel[bot]","context":"Vercel","state":"pending","description":"Vercel is deploying your app","target_url":"https://vercel.com/xig2/vibeassist-tries/kGVNSNM7Aoo3Ug4jcYdANTwegzax","created_at":"2026-11-15T21:20:23Z"}
+```
+**Every check run:**
+```
+{"app":"cloudflare-workers-and-pages","name":"Cloudflare Pages","status":"completed","conclusion":"failure","details_url":"https://dash.cloudflare.com/?to=/5ab782b7007da791a8e2bd06113aeb72/pages/view/vibeassist-tries/7a7374bb-66af-4431-ae66-4efd02dd1f04","html_url":"https://github.com/k1sr/vibeassist-tries/runs/132962226237","external_id":"7a7374bb-66af-4431-ae66-4efd02dd1f04","started_at":"2026-11-15T21:20:39Z","completed_at":"2026-11-15T21:20:39Z","output":{"title":"Building","summary":"<table><tr><td><strong>Latest commit:</strong> </td><td>\n<code>2f03bbf</code>\n</td></tr>\n<tr><td><strong>Status:</strong></td><td>🚫&nbsp; Build failed.</td></tr>\n</table>\n\n[View logs](https://dash.cloudflare.com/?to=/5ab782b7007da791a8e2bd06113aeb72/pages/view/vibeassist-tries/7a7374bb-66af-4431-ae66-4efd02dd1f04)\n","text":null}}
+{"app":"netlify","name":"Redirect rules - zesty-bienenstitch-c3a6cb","status":"completed","conclusion":"failure","details_url":"https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa2217c6e5dd612e2ca92c","html_url":"https://github.com/k1sr/vibeassist-tries/runs/132962187470","external_id":"6afa2217c6e5dd612e2ca92c","started_at":"2026-11-15T21:20:29Z","completed_at":"2026-11-15T21:20:39Z","output":{"title":"Deploy failed","summary":"Please check [the logs](https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa2217c6e5dd612e2ca92c).","text":null}}
+{"app":"netlify","name":"Header rules - zesty-bienenstitch-c3a6cb","status":"completed","conclusion":"failure","details_url":"https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa2217c6e5dd612e2ca92c","html_url":"https://github.com/k1sr/vibeassist-tries/runs/132962185711","external_id":"6afa2217c6e5dd612e2ca92c","started_at":"2026-11-15T21:20:29Z","completed_at":"2026-11-15T21:20:39Z","output":{"title":"Deploy failed","summary":"Please check [the logs](https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa2217c6e5dd612e2ca92c).","text":null}}
+{"app":"vercel","name":"Vercel Preview Comments","status":"completed","conclusion":"success","details_url":"https://vercel.com/github","html_url":"https://github.com/k1sr/vibeassist-tries/runs/132962185508","external_id":"","started_at":"2026-11-15T21:20:30Z","completed_at":"2026-11-15T21:20:30Z","output":{"title":"✅ No unresolved feedback","summary":"💬 0 unresolved, 0 resolved.","text":null}}
+{"app":"netlify","name":"Pages changed - zesty-bienenstitch-c3a6cb","status":"completed","conclusion":"failure","details_url":"https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa2217c6e5dd612e2ca92c","html_url":"https://github.com/k1sr/vibeassist-tries/runs/132962183771","external_id":"6afa2217c6e5dd612e2ca92c","started_at":"2026-11-15T21:20:29Z","completed_at":"2026-11-15T21:20:38Z","output":{"title":"Deploy failed","summary":"Please check [the logs](https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa2217c6e5dd612e2ca92c).","text":null}}
+```
+**Deployments for this commit:** `[]`. **Comments** were read at 21:30:52 (raw: `results/batch-2b-raw/step3-fail-comments.json`).
+
+**How each host reported it:**
+- **Netlify: YES, it now reports the failure.**
+  - Status `netlify/zesty-bienenstitch-c3a6cb/deploy-preview` went `pending` → **`failure`**, description "Deploy Preview failed.", target_url `https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa2217c6e5dd612e2ca92c` (the deploy log page, not a preview).
+  - All 3 Netlify check runs are `failure`, title "Deploy failed", summary "Please check [the logs](…/deploys/6afa2217c6e5dd612e2ca92c)".
+  - Its comment changed to "❌ Deploy Preview for *zesty-bienenstitch-c3a6cb* failed." with commit 2f03bbf… and the deploy log link.
+- **Vercel:** status `Vercel` **`failure`**, "Deployment has failed — run this Vercel CLI command: npx vercel inspect dpl_kGVNSNM7Aoo3Ug4jcYdANTwegzax --logs", target_url `https://vercel.com/xig2/vibeassist-tries/kGVNSNM7Aoo3Ug4jcYdANTwegzax`. Its check run "Vercel Preview Comments" stayed `success`. Its comment shows "Error" with that link and an empty Preview cell.
+- **Cloudflare Pages:**
+  - Check run "Cloudflare Pages" is **`failure`**, output.title "Building" (sic). output.summary: Latest commit `2f03bbf`, Status "🚫  Build failed.", and a "View logs" link `https://dash.cloudflare.com/?to=/5ab782b7007da791a8e2bd06113aeb72/pages/view/vibeassist-tries/7a7374bb-66af-4431-ae66-4efd02dd1f04` (also its details_url). output.text null.
+  - Its comment 6901398325 shows the same. No preview URL.
+- **Cloudflare Workers Builds:** **nothing** for this commit (no check run, and comment 6900990768 not updated since 20:43:05).
+
+### 3b. Build restored
+
+Restored `"build": "mkdir -p dist && cp index.html dist/"`, then committed and pushed: `2f03bbf..5f60927  tries/preview-1 -> tries/preview-1` at 21:31:05. Head **`5f60927feb4138c567818c95e02fe40ad1bcf613`**.
+
+Poll log (`results/batch-2b-raw/step3-fix-poll-log.txt`). Polls 2–19 are identical to poll 1:
+```
+poll 0 at 21:31:07 | statuses:  | checks: cloudflare-workers-and-pages/Cloudflare Pages=in_progress/null | deployments: 
+poll 1 at 21:31:38 | statuses: netlify/zesty-bienenstitch-c3a6cb/deploy-preview=success, Vercel=success, netlify/zesty-bienenstitch-c3a6cb/deploy-preview=pending, Vercel=pending | checks: cloudflare-workers-and-pages/Cloudflare Pages=completed/success, vercel/Vercel Preview Comments=completed/success, netlify/Redirect rules - zesty-bienenstitch-c3a6cb=completed/neutral, netlify/Header rules - zesty-bienenstitch-c3a6cb=completed/neutral, netlify/Pages changed - zesty-bienenstitch-c3a6cb=completed/neutral | deployments: 
+...
+poll 20 at 21:41:32 | statuses: netlify/zesty-bienenstitch-c3a6cb/deploy-preview=success, Vercel=success, netlify/zesty-bienenstitch-c3a6cb/deploy-preview=pending, Vercel=pending | checks: cloudflare-workers-and-pages/Cloudflare Pages=completed/success, vercel/Vercel Preview Comments=completed/success, netlify/Redirect rules - zesty-bienenstitch-c3a6cb=completed/neutral, netlify/Header rules - zesty-bienenstitch-c3a6cb=completed/neutral, netlify/Pages changed - zesty-bienenstitch-c3a6cb=completed/neutral | deployments: 
+time up at 21:41:34 (3 of 4 had reported)
+```
+**Every status:**
+```
+{"creator":"netlify[bot]","context":"netlify/zesty-bienenstitch-c3a6cb/deploy-preview","state":"success","description":"Deploy Preview ready!","target_url":"https://deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app","created_at":"2026-11-15T21:31:19Z"}
+{"creator":"vercel[bot]","context":"Vercel","state":"success","description":"Deployment has completed","target_url":"https://vercel.com/xig2/vibeassist-tries/Hu6ZJDMXu7z4udWDa4vEampA1My2","created_at":"2026-11-15T21:31:13Z"}
+{"creator":"netlify[bot]","context":"netlify/zesty-bienenstitch-c3a6cb/deploy-preview","state":"pending","description":"Deploy Preview processing.","target_url":"https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa249c8cc5f2580a21a8bf","created_at":"2026-11-15T21:31:10Z"}
+{"creator":"vercel[bot]","context":"Vercel","state":"pending","description":"Vercel is deploying your app","target_url":"https://vercel.com/xig2/vibeassist-tries/Hu6ZJDMXu7z4udWDa4vEampA1My2","created_at":"2026-11-15T21:31:07Z"}
+```
+**Every check run:**
+```
+{"app":"cloudflare-workers-and-pages","name":"Cloudflare Pages","status":"completed","conclusion":"success","details_url":"https://dash.cloudflare.com/?to=/5ab782b7007da791a8e2bd06113aeb72/pages/view/vibeassist-tries/ef41128a-269f-4716-8f50-053c194dbb2e","html_url":"https://github.com/k1sr/vibeassist-tries/runs/132965333632","external_id":"ef41128a-269f-4716-8f50-053c194dbb2e","started_at":"2026-11-15T21:31:21Z","completed_at":"2026-11-15T21:31:21Z","output":{"title":"Deployed successfully","summary":"<table><tr><td><strong>Latest commit:</strong> </td><td>\n<code>5f60927</code>\n</td></tr>\n<tr><td><strong>Status:</strong></td><td>&nbsp;✅&nbsp; Deploy successful!</td></tr>\n<tr><td><strong>Preview URL:</strong></td><td>\n<a href='https://ef41128a.vibeassist-tries.pages.dev'>https://ef41128a.vibeassist-tries.pages.dev</a>\n</td></tr>\n<tr><td><strong>Branch Preview URL:</strong></td><td>\n<a href='https://tries-preview-1.vibeassist-tries.pages.dev'>https://tries-preview-1.vibeassist-tries.pages.dev</a>\n</td></tr>\n</table>\n\n[View logs](https://dash.cloudflare.com/?to=/5ab782b7007da791a8e2bd06113aeb72/pages/view/vibeassist-tries/ef41128a-269f-4716-8f50-053c194dbb2e)\n","text":null}}
+{"app":"vercel","name":"Vercel Preview Comments","status":"completed","conclusion":"success","details_url":"https://vercel.com/github","html_url":"https://github.com/k1sr/vibeassist-tries/runs/132965299995","external_id":"","started_at":"2026-11-15T21:31:14Z","completed_at":"2026-11-15T21:31:14Z","output":{"title":"✅ No unresolved feedback","summary":"💬 0 unresolved, 0 resolved. [Go to feedback](https://vercel.live/open-feedback/vibeassist-tries-git-tries-preview-1-xig2.vercel.app?via=pr-comment-feedback-link)","text":null}}
+{"app":"netlify","name":"Redirect rules - zesty-bienenstitch-c3a6cb","status":"completed","conclusion":"neutral","details_url":"https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa249c8cc5f2580a21a8bf","html_url":"https://github.com/k1sr/vibeassist-tries/runs/132965288165","external_id":"6afa249c8cc5f2580a21a8bf","started_at":"2026-11-15T21:31:09Z","completed_at":"2026-11-15T21:31:18Z","output":{"title":"No redirect rules processed","summary":"This deploy did not include any redirect rules.","text":null}}
+{"app":"netlify","name":"Header rules - zesty-bienenstitch-c3a6cb","status":"completed","conclusion":"neutral","details_url":"https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa249c8cc5f2580a21a8bf","html_url":"https://github.com/k1sr/vibeassist-tries/runs/132965286048","external_id":"6afa249c8cc5f2580a21a8bf","started_at":"2026-11-15T21:31:09Z","completed_at":"2026-11-15T21:31:18Z","output":{"title":"No header rules processed","summary":"This deploy did not include any header rules.","text":null}}
+{"app":"netlify","name":"Pages changed - zesty-bienenstitch-c3a6cb","status":"completed","conclusion":"neutral","details_url":"https://app.netlify.com/projects/zesty-bienenstitch-c3a6cb/deploys/6afa249c8cc5f2580a21a8bf","html_url":"https://github.com/k1sr/vibeassist-tries/runs/132965283510","external_id":"6afa249c8cc5f2580a21a8bf","started_at":"2026-11-15T21:31:09Z","completed_at":"2026-11-15T21:31:18Z","output":{"title":"All files already uploaded","summary":"All files already uploaded by a previous deploy with the same commits.","text":null}}
+```
+**Deployments for this commit:** `[]`
+
+**Recovered?**
+- **Netlify:** yes. `success` "Deploy Preview ready!", target_url `https://deploy-preview-4--zesty-bienenstitch-c3a6cb.netlify.app`. Its check runs are back to `neutral`, and its comment was updated at 21:31:20.
+- **Vercel:** yes. `success` "Deployment has completed", target_url `https://vercel.com/xig2/vibeassist-tries/Hu6ZJDMXu7z4udWDa4vEampA1My2`.
+- **Cloudflare Pages:** yes. Check run `success` "Deployed successfully", with Preview URL `https://ef41128a.vibeassist-tries.pages.dev` and Branch Preview URL `https://tries-preview-1.vibeassist-tries.pages.dev` in output.summary.
+- **Cloudflare Workers Builds:** **no result at all** (nothing to recover from; it has not run on any commit since 20:40).
+
