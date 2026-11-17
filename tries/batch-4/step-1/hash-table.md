@@ -138,13 +138,13 @@ Final state:
 
 **Lookup 5:** `5 mod 7 = 5`. The bucket is empty. Not found after 0 comparisons.
 
-**Delete 31:** go to bucket 3 and unlink 31. The chain becomes `10 → 17`. Deletion is simple with chaining, and no other bucket is affected.
+**Delete 31:** unlink it from bucket 3, leaving `10 → 17`. No other bucket is affected.
 
-Seven keys in seven buckets is a **load factor** of 1.0, yet three buckets are empty and one holds three keys. That unevenness is normal. Even a perfectly random hash function produces clumps, and section 6 shows how the expected chain length still stays small.
+Seven keys in seven buckets is a **load factor** of 1.0, yet three buckets are empty and one holds three keys. Even a perfectly random hash produces clumps like this. Section 6 shows why the expected chain length still stays small.
 
 ### 3.2 Strengths and weaknesses
 
-Chaining is easy to implement correctly, handles deletion cleanly, and degrades gracefully. A load factor above 1 just means chains average more than one entry. Its weakness is memory and cache behavior. Each linked-list node is a separate heap allocation with a pointer, and following those pointers jumps around memory. Java's `HashMap` uses chaining and adds one defense: when a single bucket's chain grows past 8 entries, it converts that chain into a balanced red-black tree, so a pathological bucket costs O(log n) instead of O(n).
+Chaining is easy to get right, handles deletion cleanly and degrades gracefully. Its weakness is memory and cache behavior: each node is a separate heap allocation, and following pointers jumps around memory. Java's `HashMap` adds one defense: a chain longer than 8 entries becomes a red-black tree, so a pathological bucket costs O(log n) instead of O(n).
 
 ---
 
@@ -189,9 +189,9 @@ Load factor `α = 7/11 ≈ 0.64`.
 
 **Lookup 26 (absent):** `26 mod 11 = 4`. Slot 4 holds 4, slot 5 holds 15, slot 6 holds 28, slot 7 holds 17, and slot 8 is empty. Not found after **5 probes**, even though the table is only about two-thirds full.
 
-That second lookup shows **primary clustering**, the main weakness of linear probing. Slots 4 to 7 have merged into one contiguous run. Any key that hashes anywhere into that run must walk to its end, and each insertion at the end makes the run longer, which makes it more likely to grow again. Clusters feed themselves.
+That shows **primary clustering**, linear probing's main weakness. Slots 4 to 7 have merged into one run. Any key hashing into it must walk to its end, and landing there makes the run longer still. Clusters feed themselves.
 
-**Wraparound:** now insert 21. `21 mod 11 = 10`. Slot 10 is taken, so the probe wraps to slot 0, which is also taken by 22, then slot 1, which is empty. 21 goes in slot 1. The probe sequence is circular.
+**Wraparound:** insert 21. `21 mod 11 = 10` is taken, so the probe wraps to slot 0 (taken by 22), then slot 1, which is empty. 21 goes in slot 1.
 
 ### 4.2 Deletion and tombstones
 
@@ -214,13 +214,13 @@ value: 22   ·   ·   ·   4  15  ✝   17   ·  31  10
 - **Lookups** treat a tombstone as occupied and continue past it. Looking up 17 now probes 6 (tombstone, continue) and then 7 (found).
 - **Inserts** may reuse a tombstone slot. They should keep scanning to confirm the key isn't already present further along, then place it in the first tombstone they saw.
 
-Tombstones pile up over time and lengthen probe sequences just as real entries do. Implementations therefore count them toward the resize threshold, or occasionally rebuild the table to clear them out. An alternative for linear probing is **backward-shift deletion**: after removing an entry, scan forward and move later entries in the same cluster back to fill the gap. That removes the need for tombstones entirely.
+Tombstones lengthen probes just as live entries do, so implementations count them toward the resize threshold and clear them out when rebuilding. Linear probing can instead use **backward-shift deletion**, moving later entries in the cluster back to fill the gap.
 
 ### 4.3 Quadratic probing and double hashing
 
-**Quadratic probing** spaces the probes out, for example `h(k) + i²`, which visits offsets +0, +1, +4, +9, +16 and so on. Keys that hash to neighboring slots no longer follow the same path, which breaks up primary clusters. Keys with the *same* home slot still follow identical sequences. That is called *secondary clustering* and is much milder. One catch is that quadratic probing is not guaranteed to visit every slot. With a prime `m` and `α ≤ 0.5`, it is guaranteed to find an empty slot.
+**Quadratic probing** visits offsets +0, +1, +4, +9, …, so keys with neighboring home slots no longer share a path. Keys with the *same* home still do (*secondary clustering*, which is much milder). It may not visit every slot, but with a prime `m` and `α ≤ 0.5` it always finds an empty one.
 
-**Double hashing** uses a second hash function to choose the step size, so different keys walk different strides even from the same home. The step must never be 0 and should be coprime with `m`, which is automatic when `m` is prime.
+**Double hashing** uses a second hash to choose the step size, so keys with the same home walk different strides. The step must be nonzero and coprime with `m`, which is automatic when `m` is prime.
 
 Worked example: rebuild the table above, but insert 17 using double hashing with `h₁(k) = k mod 11` and `h₂(k) = 7 − (k mod 7)`. Before 17 arrives, slots 0, 4, 5, 6, 9 and 10 are full.
 
@@ -233,11 +233,11 @@ i = 1: (6 + 4)  mod 11 = 10 → taken (10)
 i = 2: (6 + 8)  mod 11 = 3  → empty, place 17 at slot 3
 ```
 
-Key 17 jumped over the cluster at 4 to 6 instead of extending it. Another key with home 6 but a different `h₂` would take a completely different path.
+Key 17 jumped past the cluster at 4 to 6 instead of extending it.
 
 ### 4.4 Why open addressing is popular anyway
 
-Despite these complications, the fastest modern hash tables use open addressing: Google's SwissTable, Rust's `HashMap`, Python's `dict` and Facebook's F14. Entries sit contiguously in memory, so a probe sequence is mostly a scan through cache lines the CPU has already loaded, with no pointer-chasing and no per-entry allocation. SwissTable goes further by keeping a separate array of one-byte "control" tags holding 7 bits of each hash. It compares 16 of them at once with SIMD instructions, so most mismatching slots are rejected without ever touching the keys.
+The fastest modern tables (Google's SwissTable, Rust's `HashMap`, Python's `dict`) use open addressing. Entries sit contiguously, so probing scans cache lines already loaded, with no pointer-chasing or per-entry allocation. SwissTable also compares 16 one-byte hash tags at once with SIMD, rejecting most non-matching slots without touching the keys.
 
 ---
 
@@ -249,7 +249,7 @@ The **load factor** is
 α = n / m      (n = number of entries, m = number of buckets)
 ```
 
-It is the single most important number for a hash table's performance, because nearly every cost grows with it.
+It is the most important number for performance, because nearly every cost grows with it.
 
 | Strategy           | Typical max α | Notes                                              |
 |--------------------|---------------|----------------------------------------------------|
@@ -258,7 +258,7 @@ It is the single most important number for a hash table's performance, because n
 | Python `dict`      | ~0.67 (2/3)   | Open addressing with perturbed probing             |
 | SwissTable         | 0.875 (7/8)   | SIMD group probing tolerates high load             |
 
-A lower load factor means faster operations and more wasted memory. A higher one means the opposite. The resize threshold sets where on that trade-off a table sits.
+Lower α means faster operations and more wasted memory. The resize threshold picks the point on that trade-off.
 
 ---
 
@@ -288,15 +288,13 @@ Plugging in numbers shows why open addressing tables resize early:
 | 0.90 | 1.90          | 5.50             | 50.50             |
 | 0.99 | 1.99          | 50.50            | 5000.50           |
 
-Chaining degrades linearly. Linear probing's miss cost grows with the *square* of `1/(1 − α)`. At 90% full, a failed lookup averages fifty probes. Even so, at moderate load factors linear probing often beats chaining in wall-clock time, because its five probes hit adjacent memory while chaining's two hit scattered nodes.
+Chaining degrades linearly, while linear probing's miss cost grows with the *square* of `1/(1 − α)`: at 90% full, a failed lookup averages fifty probes. At moderate load, though, linear probing often wins in wall-clock time, because its probes hit adjacent memory.
 
 ---
 
 ## 7. Resizing and rehashing
 
-Because cost depends on α, a table that only ever grows would eventually become slow. The fix is to **resize**: when α would exceed the threshold, allocate a bigger array, typically double the size, and **rehash** every entry into it.
-
-You cannot just copy the old array across. Each key's bucket is `hash mod m`, and `m` has changed, so every key must have its bucket recomputed. That is why the operation is called rehashing.
+A table that never grows gets slower as α rises. The fix is to **resize**: when α would exceed the threshold, allocate a bigger array, typically double the size, and **rehash** every entry into it. You cannot just copy the old array, because each bucket is `hash mod m` and `m` has changed.
 
 ### 7.1 Worked example
 
@@ -340,11 +338,11 @@ m = 8, n = 4, α = 0.5
 [7] → ∅
 ```
 
-The collision between 5 and 9 disappeared. With power-of-two sizes there is a neat pattern here. When `m` doubles from 4 to 8, each key either stays at index `i` or moves to `i + 4`, depending on one extra bit of its hash. 9 is `1001` in binary, and bit 2 is 0, so it stays at 1. 5 is `0101`, bit 2 is 1, so it moves to 5. Java's `HashMap` uses this to split each chain into a "low" and a "high" list without recomputing full indexes.
+The collision between 5 and 9 disappeared. With power-of-two sizes, each key either stays at index `i` or moves to `i + 4`, depending on one extra hash bit: 9 is `1001` (bit 2 is 0, stays at 1) and 5 is `0101` (bit 2 is 1, moves to 5).
 
 ### 7.2 Why doubling makes resizing cheap on average
 
-A single resize costs O(n), because every entry is touched. That sounds alarming, but resizes become rarer as the table grows.
+A single resize costs O(n), but resizes become rarer as the table grows.
 
 Suppose you insert `n` items into a table that starts at size 1 and doubles whenever it fills. Resizes happen at sizes 1, 2, 4, 8, …, up to about `n`. The total number of entries moved across all resizes is
 
@@ -352,27 +350,19 @@ Suppose you insert `n` items into a table that starts at size 1 and doubles when
 1 + 2 + 4 + … + n/2 + n  <  2n
 ```
 
-So `n` inserts cost at most `n` (the inserts themselves) plus `2n` (all the moving), which is O(n) in total, or **O(1) amortized per insert**. This depends on growing *geometrically*. If the table instead grew by a fixed amount, say 100 slots at a time, there would be `n/100` resizes, each costing up to `n`, for O(n²) total and O(n) amortized per insert.
+So `n` inserts cost at most `n + 2n`, which is **O(1) amortized per insert**. This depends on growing *geometrically*. Growing by a fixed 100 slots would mean `n/100` resizes of up to `n` each: O(n²) total.
 
-The amortized bound says nothing about any single operation. One unlucky insert still pays the full O(n). Latency-sensitive systems sometimes use **incremental resizing**, as Redis does: they keep both the old and new arrays and move a few buckets on each subsequent operation, spreading the cost out.
+Any single insert can still pay the full O(n). Latency-sensitive systems such as Redis resize **incrementally**, moving a few buckets per operation.
 
-### 7.3 Shrinking
-
-Tables can also shrink when many entries are deleted, for instance halving when α drops below 0.25. The shrink threshold must sit well below the grow threshold. If a table grew at 0.5 and shrank just under 0.5, alternating inserts and deletes at the boundary would trigger a full O(n) rehash on every operation. A gap such as growing at 0.75 and shrinking at 0.25 prevents that. Many standard library tables, including Python's `dict` and Java's `HashMap`, never shrink automatically.
+If a table also shrinks, its shrink threshold (say 0.25) must sit well below the grow threshold (0.75). Otherwise alternating inserts and deletes at the boundary would rehash on every operation.
 
 ---
 
 ## 8. Worst cases and hash flooding
 
-Everything above is an *average*. The worst case is that every key hashes to the same bucket. Chaining then degenerates into a single linked list, and open addressing into one long probe sequence. Every operation becomes O(n), and inserting n keys costs O(n²).
+Everything above is an *average*. If every key hashes to the same bucket, each operation becomes O(n) and inserting n keys costs O(n²). With a fixed, public hash function, an attacker can force this. In 2011, researchers tied up web servers for minutes with single POST requests whose parameter names all collided. This is **hash flooding**.
 
-With a fixed, publicly known hash function, an attacker can make this happen on purpose. In 2011, researchers showed that sending a web server a POST request with tens of thousands of carefully chosen parameter names, all colliding in the server's hash table, could tie up a CPU core for minutes. Many language runtimes were affected. This attack is called **hash flooding**.
-
-The defenses:
-
-- **Randomized, keyed hashing.** Each process picks a random secret seed at startup and mixes it into every hash. Python, Ruby, Rust and others use SipHash or a similar keyed function for this. An attacker who can't see the seed can't predict collisions.
-- **Treeified buckets.** Java's approach, described in section 3.2, caps the damage at O(log n) per operation even when collisions do happen.
-- **Universal hashing.** In theory, choosing the hash function at random from a *universal family* guarantees expected O(1) behavior for *any* fixed input set, no matter how adversarial.
+The defenses are **keyed hashing** (a random per-process seed mixed into a function such as SipHash, as Python and Rust do), **treeified buckets** (Java's O(log n) cap), and in theory **universal hashing**, which picks the function at random from a family that guarantees expected O(1) for any input.
 
 ---
 
@@ -387,7 +377,7 @@ The defenses:
 | Iterate all entries | O(n + m)    | O(n + m)   | must visit empty buckets too           |
 | Space               | O(n)        | O(n)       | as long as m stays proportional to n   |
 
-What hash tables do **not** offer is ordering. Finding the minimum key, iterating in sorted order or answering "all keys between 100 and 200" each require scanning everything. Use a balanced search tree or a skip list for those. Some implementations, such as Python's `dict` since 3.7 and Java's `LinkedHashMap`, preserve *insertion* order, but that is a different thing from sorted order.
+Hash tables do **not** offer ordering: minimums, sorted iteration and range queries need a full scan. Use a balanced tree for those.
 
 ---
 
@@ -445,7 +435,7 @@ class ChainedHashMap:
         return self._size
 ```
 
-The important details are the equality check (`k == key`) inside the chain, which is how two colliding keys are told apart, and the fact that `_resize` recomputes every index using the *new* capacity.
+The equality check inside the chain is how colliding keys are told apart, and `_resize` recomputes every index with the *new* capacity.
 
 ### 10.2 Linear probing with tombstones
 
@@ -536,37 +526,10 @@ class LinearProbingHashMap:
         return self._size
 ```
 
-Points worth noticing:
-
-- `get` stops only at a truly **empty** slot, never at a tombstone. That is the rule that keeps the deletion trace in section 4.2 correct.
-- The resize trigger uses `_used`, which counts tombstones, because tombstones lengthen probes exactly as live entries do.
-- Resizing quietly removes all tombstones, since only live entries are reinserted. When the table is mostly tombstones, it rebuilds at the same size instead of doubling.
-- The two sentinels are unique objects compared with `is`, so they can never be confused with a real key, even `None`.
-
-### 10.3 Using it
-
-```python
-m = LinearProbingHashMap()
-for word in ["cat", "act", "dog", "tac"]:
-    m.put(word, len(word))
-m.remove("act")
-print(m.get("tac"))   # 3, still reachable past the tombstone
-print(m.get("act"))   # None
-print(len(m))         # 3
-```
+`get` stops only at a truly **empty** slot, never a tombstone, which keeps the section 4.2 trace correct. The resize trigger counts tombstones (`_used`), and rebuilding drops them.
 
 ---
 
-## 11. Choosing and using hash tables well
+## 11. Recap
 
-- **Make keys immutable**, or at least never change a key's hashed fields while it is in a table. If a key's hash changes after insertion, the entry stays in its old bucket and can never be found again. This is why Python refuses to hash lists.
-- **Override `hash` and `equals` together.** In Java, C#, Python and similar languages, objects that compare equal must produce equal hashes. Breaking this produces maps that "lose" entries.
-- **Pre-size when you know the count.** If you will insert a million entries, request capacity up front (for example `new HashMap<>(expected / 0.75 + 1)` in Java) to skip roughly twenty intermediate resizes.
-- **Use keyed hashing for untrusted input.** Most modern runtimes already do this by default. If yours does not, or you have written your own table, add it.
-- **Pick the right structure.** Use a hash table for membership tests, counting, deduplication, caching, joins and indexes by exact key. Use a tree when you need ordering or range queries. Use a plain array when keys are already small dense integers.
-
----
-
-## 12. Recap
-
-A hash table turns a key into an array index with a hash function and then deals with the inevitable collisions. **Separate chaining** keeps a list per bucket. It is simple and robust, and it degrades gently as the load factor grows. **Open addressing** keeps everything in one array and probes for free slots. It is faster in practice thanks to cache locality, but it needs careful deletion and a lower load factor. The **load factor** α = n/m controls performance, and **resizing** by doubling and rehashing keeps α bounded at O(1) amortized cost per insert. With a well-mixed, ideally keyed hash function, inserts, lookups and deletes all run in expected constant time, and the O(n) worst case stays a theoretical concern instead of a practical one.
+A hash function turns a key into an array index, and a collision strategy handles the rest. **Chaining** is simple and degrades gently. **Open addressing** is faster thanks to cache locality but needs careful deletion and a lower load factor. Keeping **α = n/m** bounded by doubling and rehashing gives expected O(1) operations at O(1) amortized resize cost. One practical rule follows from all of this: never mutate a key while it is in a table, because its entry stays in the old bucket and can't be found again.
