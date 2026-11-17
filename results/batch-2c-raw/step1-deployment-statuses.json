@@ -1,0 +1,127 @@
+{
+ "deployments": [
+  {
+   "url": "https://api.github.com/repos/k1sr/vibeassist-tries/deployments/7840249869",
+   "id": 7840249869,
+   "node_id": "DE_kwDOVvDoas8AAAAB01C4DQ",
+   "task": "deploy",
+   "original_environment": "unique-playfulness / vibeassist-tries-pr-26",
+   "environment": "unique-playfulness / vibeassist-tries-pr-26",
+   "description": "Deployed to Railway",
+   "created_at": "2026-11-17T00:21:38Z",
+   "updated_at": "2026-11-17T00:22:20Z",
+   "statuses_url": "https://api.github.com/repos/k1sr/vibeassist-tries/deployments/7840249869/statuses",
+   "repository_url": "https://api.github.com/repos/k1sr/vibeassist-tries",
+   "creator": {
+    "login": "railway-app[bot]",
+    "id": 68434857,
+    "node_id": "MDM6Qm90Njg0MzQ4NTc=",
+    "avatar_url": "https://avatars.githubusercontent.com/in/73253?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/railway-app%5Bbot%5D",
+    "html_url": "https://github.com/apps/railway-app",
+    "followers_url": "https://api.github.com/users/railway-app%5Bbot%5D/followers",
+    "following_url": "https://api.github.com/users/railway-app%5Bbot%5D/following{/other_user}",
+    "gists_url": "https://api.github.com/users/railway-app%5Bbot%5D/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/railway-app%5Bbot%5D/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/railway-app%5Bbot%5D/subscriptions",
+    "organizations_url": "https://api.github.com/users/railway-app%5Bbot%5D/orgs",
+    "repos_url": "https://api.github.com/users/railway-app%5Bbot%5D/repos",
+    "events_url": "https://api.github.com/users/railway-app%5Bbot%5D/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/railway-app%5Bbot%5D/received_events",
+    "type": "Bot",
+    "user_view_type": "public",
+    "site_admin": false
+   },
+   "sha": "8aa1388d7d8d5656571327ed5db59e20c5cf80a5",
+   "ref": "8aa1388d7d8d5656571327ed5db59e20c5cf80a5",
+   "payload": {
+    "environmentId": "f4d5f566-a03b-4f55-81e6-f0b5d8e66a23"
+   },
+   "transient_environment": true,
+   "production_environment": false,
+   "performed_via_github_app": null
+  }
+ ],
+ "statuses": {
+  "7840249869": {
+   "rc": 0,
+   "answer": [
+    {
+     "url": "https://api.github.com/repos/k1sr/vibeassist-tries/deployments/7840249869/statuses/22363866528",
+     "id": 22363866528,
+     "node_id": "DES_kwDOVvDoas8AAAAFNP2FoA",
+     "state": "success",
+     "creator": {
+      "login": "railway-app[bot]",
+      "id": 68434857,
+      "node_id": "MDM6Qm90Njg0MzQ4NTc=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/73253?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/railway-app%5Bbot%5D",
+      "html_url": "https://github.com/apps/railway-app",
+      "followers_url": "https://api.github.com/users/railway-app%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/railway-app%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/railway-app%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/railway-app%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/railway-app%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/railway-app%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/railway-app%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/railway-app%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/railway-app%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+     },
+     "description": "",
+     "environment": "unique-playfulness / vibeassist-tries-pr-26",
+     "target_url": "https://railway.com/project/cb09f8d5-38f9-43b7-a264-c92bc48f0ee4?environmentId=f4d5f566-a03b-4f55-81e6-f0b5d8e66a23",
+     "created_at": "2026-11-17T00:22:20Z",
+     "updated_at": "2026-11-17T00:22:20Z",
+     "deployment_url": "https://api.github.com/repos/k1sr/vibeassist-tries/deployments/7840249869",
+     "repository_url": "https://api.github.com/repos/k1sr/vibeassist-tries",
+     "environment_url": "https://railway.com/project/cb09f8d5-38f9-43b7-a264-c92bc48f0ee4?environmentId=f4d5f566-a03b-4f55-81e6-f0b5d8e66a23",
+     "log_url": "https://railway.com/project/cb09f8d5-38f9-43b7-a264-c92bc48f0ee4?environmentId=f4d5f566-a03b-4f55-81e6-f0b5d8e66a23",
+     "performed_via_github_app": null
+    },
+    {
+     "url": "https://api.github.com/repos/k1sr/vibeassist-tries/deployments/7840249869/statuses/22363829655",
+     "id": 22363829655,
+     "node_id": "DES_kwDOVvDoas8AAAAFNPz1lw",
+     "state": "in_progress",
+     "creator": {
+      "login": "railway-app[bot]",
+      "id": 68434857,
+      "node_id": "MDM6Qm90Njg0MzQ4NTc=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/73253?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/railway-app%5Bbot%5D",
+      "html_url": "https://github.com/apps/railway-app",
+      "followers_url": "https://api.github.com/users/railway-app%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/railway-app%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/railway-app%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/railway-app%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/railway-app%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/railway-app%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/railway-app%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/railway-app%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/railway-app%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+     },
+     "description": "",
+     "environment": "unique-playfulness / vibeassist-tries-pr-26",
+     "target_url": "https://railway.com/project/cb09f8d5-38f9-43b7-a264-c92bc48f0ee4?environmentId=f4d5f566-a03b-4f55-81e6-f0b5d8e66a23",
+     "created_at": "2026-11-17T00:21:38Z",
+     "updated_at": "2026-11-17T00:21:38Z",
+     "deployment_url": "https://api.github.com/repos/k1sr/vibeassist-tries/deployments/7840249869",
+     "repository_url": "https://api.github.com/repos/k1sr/vibeassist-tries",
+     "environment_url": "https://railway.com/project/cb09f8d5-38f9-43b7-a264-c92bc48f0ee4?environmentId=f4d5f566-a03b-4f55-81e6-f0b5d8e66a23",
+     "log_url": "https://railway.com/project/cb09f8d5-38f9-43b7-a264-c92bc48f0ee4?environmentId=f4d5f566-a03b-4f55-81e6-f0b5d8e66a23",
+     "performed_via_github_app": null
+    }
+   ]
+  }
+ }
+}
