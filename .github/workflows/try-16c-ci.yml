@@ -1,0 +1,12 @@
+name: try-16c-ci
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  try-16c-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo marker
+        run: echo "16c ran"
