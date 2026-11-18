@@ -1,0 +1,20 @@
+# Step 0 and branch list (captured 07:54:27 UTC)
+
+try16/jobs before step 0: daa098f
+Step 0 merge (fe05ecc) pushed directly to try16/jobs: see log
+fe05ecc try 16d: bring try16/jobs up to main [skip ci]
+
+--- .github/workflows on try16/jobs after step 0
+.github/workflows/clean-up-branches.yml
+.github/workflows/database-deploy.yml
+.github/workflows/try-16c-ci.yml
+
+--- refs pushed with tip committed after 07:43:00 UTC
+2026-11-18T07:49:13+00:00 origin/main 8698441
+2026-11-18T07:48:53+00:00 origin/try16/jobs 3ec053e
+2026-11-18T07:48:50+00:00 origin/try16/d-b-074850 b841ea4
+2026-11-18T07:43:16+00:00 origin/try16/d-a-074316 3e16d51
+
+--- main commits adding TARGET RAN
+8698441 2026-11-18T07:49:13+00:00 try 16: target ran
+9273272 2026-11-18T07:43:49+00:00 try 16: target ran
